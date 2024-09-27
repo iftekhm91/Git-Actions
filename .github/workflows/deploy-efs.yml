@@ -29,8 +29,11 @@ jobs:
 
       - name: Deploy CloudFormation Stack
         run: |
+          # Read the properties file and format it for the deploy command
+          PARAMS=$(awk -F= '{print $1"="$2}' Infrastructure/Parameters/npd-dev/efs-parameters.properties | tr '\n' ' ')
+    
           aws cloudformation deploy \
             --template-file Infrastructure/Templates/EFS/efs.yml \
             --stack-name develop-efs \
-            --parameter-overrides Infrastructure/Parameters/npd-dev/efs-parameters.properties \
+            --parameter-overrides $PARAMS \
             --capabilities CAPABILITY_IAM
