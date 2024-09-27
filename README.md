@@ -1,2 +1,0 @@
-# gitactions
-gitactions-worflow
