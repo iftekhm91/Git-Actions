@@ -1,0 +1,67 @@
+name: Deploy S3 Bucket
+
+on:
+  push:
+    branches:
+      - develop
+      # - nft-internal
+      # - nft-customer
+      # - prd-internal
+      # - prd-customer
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        if: github.ref == 'refs/heads/develop'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: "ASIAWYPC577XI6AEQ6JZ"
+          aws-secret-access-key: "cFzIRXt5nvtXgHwugZEHkba0J1kAXIUwtkABRTe5"
+          aws-region: "ap-southeast-2"
+
+      # - name: Set up AWS CLI (nft-internal)
+      #   if: github.ref == 'refs/heads/nft-internal'
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.NFT_INTERNAL_AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.NFT_INTERNAL_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.NFT_INTERNAL_AWS_REGION }}
+
+      # - name: Set up AWS CLI (nft-customer)
+      #   if: github.ref == 'refs/heads/nft-customer'
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.NFT_CUSTOMER_AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.NFT_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.NFT_CUSTOMER_AWS_REGION }}
+
+      # - name: Set up AWS CLI (prd-internal)
+      #   if: github.ref == 'refs/heads/prd-internal'
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.PRD_INTERNAL_AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.PRD_INTERNAL_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.PRD_INTERNAL_AWS_REGION }}
+
+      # - name: Set up AWS CLI (prd-customer)
+      #   if: github.ref == 'refs/heads/prd-customer'
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.PRD_CUSTOMER_AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.PRD_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.PRD_CUSTOMER_AWS_REGION }}
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file Infrastructure/Templates/S3/s3-template.yml \
+            --stack-name my-s3-bucket-stack-${{ github.ref }} \
+            --parameter-overrides BucketName=my-s3-bucket-${{ github.run_id }} \
+            --capabilities CAPABILITY_IAM
+
