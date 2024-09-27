@@ -62,7 +62,7 @@ jobs:
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
-            --template-file Infrastructure/Templates/S3/s3-template.yml \
+            --template-file Infrastructure/Templates/S3/s3.yml \
             --stack-name my-s3-bucket-stack-${{ github.ref }} \
             --parameter-overrides BucketName=my-s3-bucket-${{ github.run_id }} \
             --capabilities CAPABILITY_IAM
