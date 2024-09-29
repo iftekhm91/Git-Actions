@@ -21,10 +21,10 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: "ASIAWYPC577XI6AEQ6JZ"
-          aws-secret-access-key: "cFzIRXt5nvtXgHwugZEHkba0J1kAXIUwtkABRTe5"
+          aws-access-key-id: "ASIAWYPC577XGFYCRTXP"
+          aws-secret-access-key: "rAEenZJ8uMr8LhOdyH2mRwouRtwj8MukEL1N36FF"
           aws-session-token: |
-            IQoJb3JpZ2luX2VjENn//////////wEaCXVzLWVhc3QtMSJHMEUCIGmEg6egBh+z8Z7SCx4PuV5unIrDiDCAKvyISAPky3sYAiEA7Lkcu300xoPevzDB8PzRsAtVsFruVy3/c73blW5BEhYqwQIIIhACGgw0NjQ4NjkyNjEyOTQiDN4MTg01pQIRsujjJSqeAk0qUic5zey+M27mqszyKQGkiF6TB75mRPeWk6VHJdeFhxeDTpX4OJofuz2kqaY8pUQYEsaJ3OV5FkTlkAkZD/j2t+rSYUg8Og+lHNKq9BYW5GXmq+cGKxbtlDkMghfUwCAKXDULYtDMZrUM+8ZxHCFIfpJbrL07ZwZhdY4oWjl6qzboyIsuOr+xh7iZD2wEmu5qsPNGM43VEmAM1P5AtXVNrVUJmdygDClLCfJ3NRunaiRCUHSDTJ5tc6mpU7FZ5h13DyS8gYNX19lGDjy1p+x7/rAhHSp57Ot8Ai/XjDzRV8VUgkvXb1M4lOMHr7GrlcN3kONQcFTrX9OdDozI186q/80GTdmoBACBv8s+gi9Pt67HDppmY2wvQgBt5How3vzXtwY63QEVkcE7UmlTT7gW7MzVyLBjVI0NCqt+Ws3bXXTRepSe8+gkDfyLyraD8W7I318T1nAdGDMdm1H7ZVDkW/vFkkMcxkXZUmQw9VVfSMl5Hyg707ll55JhCcmdXcthO2dsjPojnQXtK7TEjnBWjV7hW/GN+wIsngSO5af4FDothkfV6005GZptnkjBXWhsDdbZZP/CHWB0+t5X5CvJwX1ieaBCqy1CXLzl+jcgt+9gwa7ccId912sAiuXJg/WesHkd+IJvenE6TB8C9vsP6TwENs0yJed3boi2zFjApPrIVA==
+            IQoJb3JpZ2luX2VjEB8aCXVzLWVhc3QtMSJGMEQCIFGZZbTMxYfSPGx3n2PaDr+mK9b7l37VsS5a7nYmuXvuAiAhZuGJgHQ7fu29UoWaG9ya4ZixFiFvLPLYZHobu5CEDCrBAghoEAIaDDQ2NDg2OTI2MTI5NCIMRVaDKvXz87oTd/QYKp4CXxIcYJhB33uo0oULFIJ759trumrBrSv2YI5/KfGfx6E0/RK8F35qMCWmfxtGUjXd5EYo7HssG81NKmTiTADsaVyyVJM7/xzS8U0dwhhOXdneT5bmHjHvkrCxwYzIQoRMtUEmxM1JxlNwGwMiltlQGP6Q+pkrhGGahu0RYOxe29DwEfjBQvUsFwZEpQ/81jV5RHd9EbtDTWDWJa1ht46LMbsPDvha/Bw7oAM7TVAZyOqGuYExs9BBDYRXvk87ZeibKNjvd5QAOCjrWgBxn3kn4v9vUZWaPsqgBCA7gcrUiA0qwSbA9z+HBrE2AA0pPqPR9605rtBP57sj0Y5NAIrkv4t1cGd0+OCT0KcqsBiRHfYthYHh1UlWjDC9aynj+zCMqee3BjreAXE9ZMYwLMe1l0ZCmtFP45Zc8vUGxw/rI20X/+vR9dWv0lWQEBRXC9IUtNtWvAXhoFCq0PSoxzBzgteOYSywouJ3nvJM6FMhgmSmdEk8i4eujEry8YViJEuBBqfCV9QF+utJrhi4BKdM+V8H4pjXkGwE0e4UL9eBmIpZ010DY11knScqc/B5zMUtAOcDCPEyhTPZMkQscIK4R3aCJYxFHZKOs1K9zigCYZwDVrJwsVUqT/67HI3HiTrqYkJStq+LsXjqrU8iMqkTBI7CaZTTpYiKpQEbpCGgoUwYflzF/g==
           aws-region: "ap-southeast-2"
 
       # - name: Set up AWS CLI (nft-internal)
@@ -63,7 +63,7 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file Infrastructure/Templates/S3/s3.yml \
-            --stack-name my-s3-bucket-stack-${{ github.ref_name }} \
-            --parameter-overrides BucketName=my-s3-bucket-${{ github.run_id }} \
+            --stack-name my-s3-bucket-stack \
+            --parameter-overrides BucketName=my-s3-bucket-iftekh-ee-elas \
             --capabilities CAPABILITY_IAM
 
