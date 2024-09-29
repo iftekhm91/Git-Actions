@@ -21,10 +21,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: "ASIAWYPC577XGFYCRTXP"
-          aws-secret-access-key: "rAEenZJ8uMr8LhOdyH2mRwouRtwj8MukEL1N36FF"
-          aws-session-token: |
-            IQoJb3JpZ2luX2VjEB8aCXVzLWVhc3QtMSJGMEQCIFGZZbTMxYfSPGx3n2PaDr+mK9b7l37VsS5a7nYmuXvuAiAhZuGJgHQ7fu29UoWaG9ya4ZixFiFvLPLYZHobu5CEDCrBAghoEAIaDDQ2NDg2OTI2MTI5NCIMRVaDKvXz87oTd/QYKp4CXxIcYJhB33uo0oULFIJ759trumrBrSv2YI5/KfGfx6E0/RK8F35qMCWmfxtGUjXd5EYo7HssG81NKmTiTADsaVyyVJM7/xzS8U0dwhhOXdneT5bmHjHvkrCxwYzIQoRMtUEmxM1JxlNwGwMiltlQGP6Q+pkrhGGahu0RYOxe29DwEfjBQvUsFwZEpQ/81jV5RHd9EbtDTWDWJa1ht46LMbsPDvha/Bw7oAM7TVAZyOqGuYExs9BBDYRXvk87ZeibKNjvd5QAOCjrWgBxn3kn4v9vUZWaPsqgBCA7gcrUiA0qwSbA9z+HBrE2AA0pPqPR9605rtBP57sj0Y5NAIrkv4t1cGd0+OCT0KcqsBiRHfYthYHh1UlWjDC9aynj+zCMqee3BjreAXE9ZMYwLMe1l0ZCmtFP45Zc8vUGxw/rI20X/+vR9dWv0lWQEBRXC9IUtNtWvAXhoFCq0PSoxzBzgteOYSywouJ3nvJM6FMhgmSmdEk8i4eujEry8YViJEuBBqfCV9QF+utJrhi4BKdM+V8H4pjXkGwE0e4UL9eBmIpZ010DY11knScqc/B5zMUtAOcDCPEyhTPZMkQscIK4R3aCJYxFHZKOs1K9zigCYZwDVrJwsVUqT/67HI3HiTrqYkJStq+LsXjqrU8iMqkTBI7CaZTTpYiKpQEbpCGgoUwYflzF/g==
+          role-to-assume: "arn:aws:iam::912441590549:role/github-ci-cd-role"
           aws-region: "ap-southeast-2"
 
       # - name: Set up AWS CLI (nft-internal)
@@ -66,4 +63,3 @@ jobs:
             --stack-name my-s3-bucket-stack \
             --parameter-overrides BucketName=my-s3-bucket-iftekh-ee-elas \
             --capabilities CAPABILITY_IAM
-
