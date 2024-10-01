@@ -62,6 +62,6 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file Infrastructure/Templates/S3/s3.yml \
-            --stack-name my-s3-bucket-stack \
+            --stack-name my-s3-stack \
             --parameter-overrides BucketName=my-s3-bucket-iftekh-ee-elas \
             --capabilities CAPABILITY_IAM
