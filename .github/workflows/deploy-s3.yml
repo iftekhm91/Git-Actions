@@ -19,7 +19,7 @@ jobs:
 
       - name: Set up AWS CLI
         if: github.ref == 'refs/heads/develop'
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: "arn:aws:iam::912441590549:role/github-ci-cd-role"
           aws-region: "ap-southeast-2"
