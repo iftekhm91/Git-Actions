@@ -17,14 +17,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up AWS CLI
+      - name: Set up AWS CLI for develop
         if: github.ref == 'refs/heads/develop'
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: "arn:aws:iam::912441590549:role/github-ci-cd-role"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "ap-southeast-2"
 
-      # - name: Set up AWS CLI (nft-internal)
+      # Uncomment and configure the following steps for additional environments
+      # - name: Set up AWS CLI for nft-internal
       #   if: github.ref == 'refs/heads/nft-internal'
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
@@ -32,7 +34,7 @@ jobs:
       #     aws-secret-access-key: ${{ secrets.NFT_INTERNAL_AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ secrets.NFT_INTERNAL_AWS_REGION }}
 
-      # - name: Set up AWS CLI (nft-customer)
+      # - name: Set up AWS CLI for nft-customer
       #   if: github.ref == 'refs/heads/nft-customer'
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
@@ -40,7 +42,7 @@ jobs:
       #     aws-secret-access-key: ${{ secrets.NFT_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ secrets.NFT_CUSTOMER_AWS_REGION }}
 
-      # - name: Set up AWS CLI (prd-internal)
+      # - name: Set up AWS CLI for prd-internal
       #   if: github.ref == 'refs/heads/prd-internal'
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
@@ -48,7 +50,7 @@ jobs:
       #     aws-secret-access-key: ${{ secrets.PRD_INTERNAL_AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ secrets.PRD_INTERNAL_AWS_REGION }}
 
-      # - name: Set up AWS CLI (prd-customer)
+      # - name: Set up AWS CLI for prd-customer
       #   if: github.ref == 'refs/heads/prd-customer'
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
