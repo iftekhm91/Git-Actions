@@ -1,0 +1,37 @@
+name: Deploy EFS
+
+on:
+  push:
+    branches:
+      - develop
+      # - nft-internal
+      # - nft-customer
+      # - prd-internal
+      # - prd-customer
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI for develop
+        if: github.ref == 'refs/heads/develop'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "ap-southeast-2"
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          # Read the properties file and format it for the deploy command
+          PARAMS=$(awk -F= '{print $1"="$2}' Infrastructure/Parameters/npd-dev/efs-parameters.properties | tr '\n' ' ')
+
+          aws cloudformation deploy \
+            --template-file Infrastructure/Templates/EFS/efs.yml \
+            --stack-name develop-efs \
+            --parameter-overrides $PARAMS \
+            --capabilities CAPABILITY_IAM

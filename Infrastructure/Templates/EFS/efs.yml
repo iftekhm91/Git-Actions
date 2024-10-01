@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation Template to Create an EFS
+
+Parameters:
+  VPCId:
+    Type: String
+    Description: VPC ID where EFS will be created
+  SecurityGroupId:
+    Type: String
+    Description: Security Group ID to allow access to EFS
+  SubnetId:
+    Type: String
+    Description: Subnet ID for the EFS mount target
+  PerformanceMode:
+    Type: String
+    Default: generalPurpose
+    AllowedValues:
+      - generalPurpose
+      - maxIO
+    Description: The performance mode for the EFS file system
+  ThroughputMode:
+    Type: String
+    Default: bursting
+    AllowedValues:
+      - bursting
+      - provisioned
+    Description: The throughput mode for the EFS file system
+
+Resources:
+  MyEFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      FileSystemPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: efs:*
+            Resource: '*'
+      PerformanceMode: !Ref PerformanceMode
+      ThroughputMode: !Ref ThroughputMode
+
+  EFSMountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref MyEFS
+      SubnetId: !Ref SubnetId
+      SecurityGroups:
+        - !Ref SecurityGroupId
+
+Outputs:
+  FileSystemId:
+    Description: The ID of the EFS
+    Value: !Ref MyEFS
