@@ -1,0 +1,98 @@
+Approach 1: 
+
+Parameter properties Location:  
+
+Infrastructure/Parameters/npd-dev
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /npd-st
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /npd-sit
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /nft-internal
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /nft-customer
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /prd-internal
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+                         /prd-customer 
+                                /efs-parameters.properties
+                                /s3-parameters.properties
+                                /backups-parameters.properties
+                                /secrets-parameters.properties
+
+Templates Location:
+
+Infrastructure/Templates
+                        /Backups
+                               /backups.yml 
+                        /Efs 
+                               /efs.yml 
+                        /S3 
+                               /s3.yml 
+                        /Secrets
+                                /secrets.yml 
+
+
+Workflows: 
+
+.github/Workflows
+                /deploy-s3.yml 
+                /deploy.efs.yml 
+                /deploy.backups.yml
+                /deploy.secrets.yml 
+                
+
+Branches: 
+
+Main(Default) - No deployments 
+develop for npd-dev, npd-st, npd-sit 
+nft-customer 
+nft-internal 
+prd-customer
+prd-internal 
+
+Branching Strategy: 
+
+Main(Default) -> Feature/1234 -> Develop -> Main -> 
+                                                 Main -> nft-customer
+                                                                   -> nft-customer -> prd-customer 
+                                                 Main -> nft-internal
+                                                                    -> nft-internal -> prd-internal 
+                                               
+Main(Default) -> Feature/1234 -> Develop -> Main -> 
+                                                 Main -> nft-customer
+                                                                    
+                                                 Main -> nft-internal
+                                                                    
+                                                 Main -> prd-customer
+
+                                                 Main -> prd-internal
+
+Main(Default) -> Feature/1234  -> Main -> 
+                                                 Main -> Develop 
+                                                 
+                                                 Main -> nft-customer
+                                                                    
+                                                 Main -> nft-internal
+                                                                    
+                                                 Main -> prd-customer
+
+                                                 Main -> prd-internal
