@@ -3,7 +3,7 @@ name: Deploy EFS
 on:
   push:
     branches:
-      - develop
+      # - develop
       # - nft-internal
       # - nft-customer
       # - prd-internal

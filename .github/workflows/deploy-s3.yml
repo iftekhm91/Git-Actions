@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - develop
-      # - nft-internal
-      # - nft-customer
-      # - prd-internal
-      # - prd-customer
+      - nft-internal
+      - nft-customer
+      - prd-internal
+      - pro-customer
+    paths:
+      - 'Infrastructure/Parameters/**'
+      - 'Infrastructure/Templates/S3/s3.yml'
+      - '.github/workflows/deploy-s3.yml'
 
 jobs:
   deploy:
@@ -17,6 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Set up AWS CLI for each branch
       - name: Set up AWS CLI for develop
         if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v1
@@ -25,43 +30,63 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "ap-southeast-2"
 
-      # Uncomment and configure the following steps for additional environments
-      # - name: Set up AWS CLI for nft-internal
-      #   if: github.ref == 'refs/heads/nft-internal'
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.NFT_INTERNAL_AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.NFT_INTERNAL_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.NFT_INTERNAL_AWS_REGION }}
+      - name: Set up AWS CLI for nft-internal
+        if: github.ref == 'refs/heads/nft-internal'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.NFT_INTERNAL_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.NFT_INTERNAL_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.NFT_INTERNAL_AWS_REGION }}
 
-      # - name: Set up AWS CLI for nft-customer
-      #   if: github.ref == 'refs/heads/nft-customer'
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.NFT_CUSTOMER_AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.NFT_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.NFT_CUSTOMER_AWS_REGION }}
+      - name: Set up AWS CLI for nft-customer
+        if: github.ref == 'refs/heads/nft-customer'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.NFT_CUSTOMER_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.NFT_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.NFT_CUSTOMER_AWS_REGION }}
 
-      # - name: Set up AWS CLI for prd-internal
-      #   if: github.ref == 'refs/heads/prd-internal'
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.PRD_INTERNAL_AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.PRD_INTERNAL_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.PRD_INTERNAL_AWS_REGION }}
+      - name: Set up AWS CLI for prd-internal
+        if: github.ref == 'refs/heads/prd-internal'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PRD_INTERNAL_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PRD_INTERNAL_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.PRD_INTERNAL_AWS_REGION }}
 
-      # - name: Set up AWS CLI for prd-customer
-      #   if: github.ref == 'refs/heads/prd-customer'
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.PRD_CUSTOMER_AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.PRD_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.PRD_CUSTOMER_AWS_REGION }}
+      - name: Set up AWS CLI for pro-customer
+        if: github.ref == 'refs/heads/pro-customer'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PRD_CUSTOMER_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PRD_CUSTOMER_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.PRD_CUSTOMER_AWS_REGION }}
+
+      - name: Load Parameters
+        id: load-params
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            PARAM_FILE="Infrastructure/Parameters/npd-dev/s3-parameters.properties"
+          elif [[ "${{ github.ref }}" == "refs/heads/nft-internal" ]]; then
+            PARAM_FILE="Infrastructure/Parameters/nft-internal/s3-parameters.properties"
+          elif [[ "${{ github.ref }}" == "refs/heads/nft-customer" ]]; then
+            PARAM_FILE="Infrastructure/Parameters/nft-customer/s3-parameters.properties"
+          elif [[ "${{ github.ref }}" == "refs/heads/prd-internal" ]]; then
+            PARAM_FILE="Infrastructure/Parameters/prd-internal/s3-parameters.properties"
+          elif [[ "${{ github.ref }}" == "refs/heads/pro-customer" ]]; then
+            PARAM_FILE="Infrastructure/Parameters/pro-customer/s3-parameters.properties"
+          fi
+
+          # Export parameters from the parameter file
+          source $PARAM_FILE
+          echo "Parameters loaded from $PARAM_FILE"
+          echo "BucketName=$BucketName"
+          echo "::set-output name=bucket_name::$BucketName"
 
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
             --template-file Infrastructure/Templates/S3/s3.yml \
-            --stack-name my-s3-bucket-stack \
-            --parameter-overrides BucketName=my-s3-bucket-iftekh-ee-elas \
+            --stack-name my-s3-stack \
+            --parameter-overrides BucketName=${{ steps.load-params.outputs.bucket_name }} \
             --capabilities CAPABILITY_IAM
