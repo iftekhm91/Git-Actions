@@ -1,0 +1,27 @@
+name: Basic-Infra-Deploy
+
+on:
+  workflow_dispatch:
+  
+env:
+  
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-dev:
+    runs-on: default
+    environment: OTDS-Nonp
+    steps:
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
+          github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
+          aws-region: ${{ vars.AWS_REGION  }}
+      - name: whoami
+        run: aws sts get-caller-identity
+      - name: list-all-s3-buckets
+        run: aws s3 ls
