@@ -24,8 +24,14 @@ jobs:
           aws-region: "ap-southeast-2"
       - name: whoami
         run: aws sts get-caller-identity
-      - name: Deploy Infra
+      - name: Create Changeset
         run: |
           chmod +x Scripts/create-changeset.sh
-          echo "Executing the creation of changeset"
+          echo "Creation of changeset"
           Scripts/create-changeset.sh --environment-name npd-dev --debug true
+      
+      - name: Execute Changeset
+        run: |
+          chmod +x Scripts/deploy.sh
+          echo "Deploying the changeset"
+          Scripts/deploy.sh --environment-name npd-dev --debug true
