@@ -29,8 +29,33 @@ jobs:
           chmod +x Scripts/create-changeset.sh
           echo "Creation of changeset"
           Scripts/create-changeset.sh --environment-name npd-dev --debug true
+
+  Manual_approval:
+    needs: Create-Changeset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Awaiting Manual Review
+        run: echo "Please manually review the changeset and approve."
+    `# Adding approval step here`
+    timeout-minutes: 1440 # 24 hours to approve
+    `# Wait for manual intervention before deploying`
+
       
-      - name: Execute Changeset
+  Deploy-Changeset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up AWS CLI for develop
+        if: github.ref == 'refs/heads/develop'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "ap-southeast-2"
+      - name: whoami
+        run: aws sts get-caller-identity
+      - name: Create Changeset
         run: |
           chmod +x Scripts/deploy.sh
           echo "Deploying the changeset"
