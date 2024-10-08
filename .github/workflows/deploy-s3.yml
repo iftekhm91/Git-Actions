@@ -3,11 +3,11 @@ name: Deploy S3 Bucket
 on:
   push:
     branches:
-      - develop
-      - nft-internal
-      - nft-customer
-      - prd-internal
-      - pro-customer
+     # - develop
+     # - nft-internal
+     # - nft-customer
+     # - prd-internal
+     # - pro-customer
     paths:
       - 'Infrastructure/Parameters/**'
       - 'Infrastructure/Templates/S3/s3.yml'
