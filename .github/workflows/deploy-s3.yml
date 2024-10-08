@@ -88,5 +88,4 @@ jobs:
           aws cloudformation deploy \
             --template-file Infrastructure/Templates/S3/s3.yml \
             --stack-name my-s3-stack \
-            --parameter-overrides BucketName=${{ steps.load-params.outputs.bucket_name }} \
-            --capabilities CAPABILITY_IAM
+            --parameter-overrides BucketName=my-s3-bucket-iftekh-ee-elas 
