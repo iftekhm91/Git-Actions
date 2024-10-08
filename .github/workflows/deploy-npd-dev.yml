@@ -1,4 +1,4 @@
-name: Deploy EFS
+name: Deploy npd-dev
 
 on:
   push:
@@ -26,5 +26,5 @@ jobs:
         run: aws sts get-caller-identity
       - name: Deploy Infra
         run: |
-          - chmod +x Scripts/create-changeset.sh
-          - scripts/create-changeset.sh --environment-name npd-dev --debug true
+          chmod +x Scripts/create-changeset.sh
+          Scripts/create-changeset.sh --environment-name npd-dev --debug true
