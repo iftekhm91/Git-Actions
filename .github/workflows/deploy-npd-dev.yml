@@ -27,4 +27,5 @@ jobs:
       - name: Deploy Infra
         run: |
           chmod +x Scripts/create-changeset.sh
+          echo "Executing the creation of changeset"
           Scripts/create-changeset.sh --environment-name npd-dev --debug true
