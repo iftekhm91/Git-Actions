@@ -1,0 +1,33 @@
+name: Deploy-npd-dev
+
+on:
+  push:
+    branches:
+    #  - develop
+  
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-s3:
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
+          github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
+          aws-region: ${{ vars.AWS_REGION  }}
+      - name: whoami
+        run: aws sts get-caller-identity
+      - name: Deploy Infra
+         run: |
+          - chmod +x scripts/create-changeset.sh
+          - scripts/create-changeset.sh --environment-name npd-dev --debug true
+
+      
