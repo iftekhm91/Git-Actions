@@ -6,8 +6,8 @@ ENVIRONMENT_NAME=
 DEBUG=false
 
 
-S3_TEMPLATE=Infrastructure/Templates/S3/s3.yaml
-EFS_TEMPLATE=infrastructure/templates/EFS/efs.yaml
+S3_TEMPLATE=Infrastructure/Templates/S3/s3.yml
+EFS_TEMPLATE=infrastructure/templates/EFS/efs.yml
 
 # TODO merge below two functions later
 create_update_change_set () {
