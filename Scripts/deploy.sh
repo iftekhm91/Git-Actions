@@ -42,7 +42,7 @@ if [[ "$ENVIRONMENT_NAME" = npd-* ]]; then
     # NPD [ DEV - ST ] - INTERNAL
     deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-s3" "$S3_TEMPLATE" "Infrastructure/Parameters/${ENVIRONMENT_NAME}/s3-internal.properties" 
     # NPD [ DEV - ST ] - CUSTOMER
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-customer.properties" 
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "Infrastructure/parameters/${ENVIRONMENT_NAME}/s3-customer.properties" 
 else
     deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
 fi;
