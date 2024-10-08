@@ -1,16 +1,13 @@
 export AWS_REGION=${AWS_REGION:-"ap-southeast-2"}
 export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"ap-southeast-2"}
 
-APPLICATION_NAME=ccsa-dctm-aws-infra
+APPLICATION_NAME=ccsa-doco-aws-infra
 ENVIRONMENT_NAME=
 DEBUG=false
 
-# Extract AWS account id from CODEBUILD_BUILD_ARN environment variable
-AWS_ACCOUNT_ID=$(echo $CODEBUILD_BUILD_ARN | cut -f5 -d ':')
-CFN_ROLE_ARN=arn:aws:iam::$AWS_ACCOUNT_ID:role/CloudFormationAdminRole
 
-S3_TEMPLATE=infrastructure/templates/s3.yaml
-EFS_TEMPLATE=infrastructure/templates/efs.yaml
+S3_TEMPLATE=Infrastructure/Templates/S3/s3.yaml
+EFS_TEMPLATE=infrastructure/templates/EFS/efs.yaml
 
 # TODO merge below two functions later
 create_update_change_set () {
@@ -24,7 +21,6 @@ create_update_change_set () {
         --no-fail-on-empty-changeset \
         --stack-name $STACK_NAME \
         --template-file $STACK_TEMPLATE \
-        --role-arn ${CFN_ROLE_ARN} \
         --parameter-overrides $(cat $STACK_PARAMETERS)
 }
 
@@ -38,6 +34,5 @@ deploy () {
         --no-fail-on-empty-changeset \
         --stack-name $STACK_NAME \
         --template-file $STACK_TEMPLATE \
-        --role-arn ${CFN_ROLE_ARN} \
         --parameter-overrides $(cat $STACK_PARAMETERS)
 }
