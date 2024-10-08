@@ -36,9 +36,6 @@ jobs:
     steps:
       - name: Awaiting Manual Review
         run: echo "Please manually review the changeset and approve."
-    `# Adding approval step here`
-    timeout-minutes: 1440 # 24 hours to approve
-    `# Wait for manual intervention before deploying`
 
       
   Deploy-Changeset:
