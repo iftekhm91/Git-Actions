@@ -18,13 +18,13 @@ jobs:
           workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
           workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
           github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION  }}
       - name: whoami
         run: aws sts get-caller-identity
       - name: Deploy Infra
-        run: |
-          chmod +x scripts/create-changeset.sh
-          scripts/create-changeset.sh --environment-name npd-dev --debug true
+         run: |
+          chmod +x Scripts/create-changeset.sh
+          Scripts/create-changeset.sh --environment-name npd-dev --debug true
 
   Manual_approval:
     needs: Create-Changeset
@@ -35,7 +35,6 @@ jobs:
         run: echo "Please manually review the changeset and approve."
 
   Deploy-Changeset:
-    needs: Manual_approval
     runs-on: default
     environment: test-otds-nonprod
     steps:
@@ -47,11 +46,13 @@ jobs:
           workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
           workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
           github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION  }}
       - name: whoami
         run: aws sts get-caller-identity
       - name: Deploy Infra
-        run: |
-          chmod +x scripts/deploy.sh
+         run: |
+          chmod +x Scripts/deploy.sh
           echo "Deploying the changeset"
-          scripts/deploy.sh --environment-name npd-dev --debug true
+          Scripts/deploy.sh --environment-name npd-dev --debug true
+
+      
