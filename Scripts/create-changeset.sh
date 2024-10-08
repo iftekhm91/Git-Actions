@@ -43,9 +43,9 @@ done
 # S3 CHANGESET CREATION for Dctm
 if [[ "$ENVIRONMENT_NAME" = npd-* ]]; then
     # NPD [ DEV - ST ] - INTERNAL
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-internal.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-s3" "$S3_TEMPLATE" "Infrastructure/Parameters/${ENVIRONMENT_NAME}/s3-internal.properties" 
     # NPD [ DEV - ST ] - CUSTOMER
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-customer.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "Infrastructure/Parameters/${ENVIRONMENT_NAME}/s3-customer.properties" 
 else
     create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
 fi;
