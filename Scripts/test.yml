@@ -5,6 +5,10 @@ on:
     branches:
       - develop
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   Create-Changeset:
     runs-on: default
@@ -22,19 +26,20 @@ jobs:
       - name: whoami
         run: aws sts get-caller-identity
       - name: Deploy Infra
-         run: |
-          chmod +x Scripts/create-changeset.sh
-          Scripts/create-changeset.sh --environment-name npd-dev --debug true
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name npd-dev --debug true
 
   Manual_approval:
     needs: Create-Changeset
     runs-on: default
-    environment: test-otds-nonprod
+    environment: Manual-Approval
     steps:
       - name: Awaiting Manual Review
-        run: echo "Please manually review the changeset and approve."
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
 
   Deploy-Changeset:
+    needs: Manual_approval
     runs-on: default
     environment: test-otds-nonprod
     steps:
@@ -50,9 +55,9 @@ jobs:
       - name: whoami
         run: aws sts get-caller-identity
       - name: Deploy Infra
-         run: |
-          chmod +x Scripts/deploy.sh
+        run: |
+          chmod +x scripts/deploy.sh
           echo "Deploying the changeset"
-          Scripts/deploy.sh --environment-name npd-dev --debug true
+          scripts/deploy.sh --environment-name npd-dev --debug true
 
       
