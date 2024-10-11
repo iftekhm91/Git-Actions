@@ -5,10 +5,9 @@ on:
     branches:
       - non-prod
     paths:
-      - 'infrastructure/parameters/nonprod/develop/**'
-      - 'infrastructure/parameters/nonprod/st/**'
-      - 'infrastructure/parameters/nonprod/sit/**'
-      - 'infrastructure/templates/*'
+      - 'infrastructure/parameters/non-prod/npd-dev/**'
+      - 'infrastructure/parameters/non-prod/npd-st/**'
+      - 'infrastructure/templates/**'
 
 permissions:
   id-token: write
