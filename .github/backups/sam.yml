@@ -3,11 +3,12 @@ name: Deploy Nonprod Environments
 on:
   push:
     branches:
-      - nonprod
+      - non-prod
     paths:
       - 'infrastructure/parameters/nonprod/develop/**'
       - 'infrastructure/parameters/nonprod/st/**'
       - 'infrastructure/parameters/nonprod/sit/**'
+      - 'infrastructure/templates/*'
 
 permissions:
   id-token: write
@@ -44,16 +45,8 @@ jobs:
         if: "github.event.head_commit.modified && github.event_name == 'push' && github.event.ref == 'refs/heads/nonprod'"
         run: echo "Creating changeset for Sit environment..."
 
-  Manual_approval:
-    needs: Create-Changeset
-    runs-on: default
-    environment: Manual-Approval
-    steps:
-      - name: Awaiting Manual Review
-        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
-
   Deploy-Changeset:
-    needs: Manual_approval
+    needs: Create-Changeset
     runs-on: default
     environment: test-otds-nonprod
     steps:
