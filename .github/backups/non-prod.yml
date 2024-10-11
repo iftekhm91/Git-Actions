@@ -1,0 +1,99 @@
+name: Deploy Nonprod Environments
+
+on:
+  push:
+    branches:
+      - nonprod
+    paths:
+      - 'infrastructure/parameters/nonprod/develop/**'
+      - 'infrastructure/parameters/nonprod/st/**'
+      - 'infrastructure/parameters/nonprod/sit/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Create-Changeset:
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
+          github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Deploy Infra - Develop
+        if: "contains(github.event.head_commit.message, 'develop') || github.event_name == 'push' && github.event.head_commit.modified && github.event.ref == 'refs/heads/nonprod'"
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name npd-dev --debug true
+
+      - name: Deploy Infra - St
+        if: "contains(github.event.head_commit.message, 'st') || github.event_name == 'push' && github.event.head_commit.modified && github.event.ref == 'refs/heads/nonprod'"
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name npd-st --debug true
+
+      - name: Deploy Infra - Sit
+        if: "contains(github.event.head_commit.message, 'sit') || github.event_name == 'push' && github.event.head_commit.modified && github.event.ref == 'refs/heads/nonprod'"
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name npd-sit --debug true
+
+  Manual_approval:
+    needs: Create-Changeset
+    runs-on: default
+    environment: Manual-Approval
+    steps:
+      - name: Awaiting Manual Review
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
+
+  Deploy-Changeset:
+    needs: Manual_approval
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          workload-deploy-role: ${{ vars.AWS_DEPLOY_ROLE }}
+          github-trust-role: ${{ vars.AWS_TRUST_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Deploy Infra - Develop
+        if: "contains(github.event.head_commit.message, 'develop')"
+        run: |
+          chmod +x scripts/deploy.sh
+          echo "Deploying the changeset"
+          scripts/deploy.sh --environment-name npd-dev --debug true
+
+      - name: Deploy Infra - St
+        if: "contains(github.event.head_commit.message, 'st')"
+        run: |
+          chmod +x scripts/deploy.sh
+          echo "Deploying the changeset"
+          scripts/deploy.sh --environment-name npd-st --debug true
+
+      - name: Deploy Infra - Sit
+        if: "contains(github.event.head_commit.message, 'sit')"
+        run: |
+          chmod +x scripts/deploy.sh
+          echo "Deploying the changeset"
+          scripts/deploy.sh --environment-name npd-sit --debug true
