@@ -1,0 +1,43 @@
+name: Deploy Prod Infra
+run-name: ${{ github.workflow }} triggered by ${{ github.actor }}
+env:
+  AWS_REGION: "ap-southeast-2"
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: write # This is for repo checkout
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "prod" ]
+  repository_dispatch:
+      types: [Trigger-prod-workflow]
+  workflow_dispatch:
+    
+jobs:
+  Deploy_Infra:
+    runs-on: default
+    environment: prod
+    steps:
+      - name: Configure AWS credentials (AssumeRoleWithWebIdentity)
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: "arn:aws:iam::767397723693:role/tenant-automation-GHA-Trust"
+          role-session-name: "GitHubActions"
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials (AssumeRole)
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: "arn:aws:iam::767397723693:role/tenant-automation-GHA-CICD"
+          role-session-name: "GitHubActions"
+          aws-region: ${{ env.AWS_REGION }}
+          role-chaining: true
+      - name: checkout
+        uses: actions/checkout@v4.1.2
+      
+      # Deploy Infra
+      - name: Deploy Infra
+        run: |
+          aws sts get-caller-identity
+          chmod +x main-infra/infra/deploy.sh
+          main-infra/infra/deploy.sh --debug true
