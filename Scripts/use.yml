@@ -87,16 +87,51 @@ jobs:
           TRUST_ROLE=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].TRUST_ROLE')
           REGION=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].REGION')
 
-          # Set outputs for next jobs
-          echo "ACCOUNT_ID=${ACCOUNT_ID}" >> $GITHUB_ENV
-          echo "DEPLOY_ROLE=${DEPLOY_ROLE}" >> $GITHUB_ENV
-          echo "TRUST_ROLE=${TRUST_ROLE}" >> $GITHUB_ENV
-          echo "REGION=${REGION}" >> $GITHUB_ENV
-          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          # Set job outputs using GITHUB_OUTPUT
+          echo "ACCOUNT_ID=${ACCOUNT_ID}" >> $GITHUB_OUTPUT
+          echo "DEPLOY_ROLE=${DEPLOY_ROLE}" >> $GITHUB_OUTPUT
+          echo "TRUST_ROLE=${TRUST_ROLE}" >> $GITHUB_OUTPUT
+          echo "REGION=${REGION}" >> $GITHUB_OUTPUT
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
 
-  Deploy:
+      - name: Environment to Deploy
+        run: |
+          echo "Environment being used for this deployment:"
+          echo "ENVIRONMENT NAME: ${{ steps.set-env.outputs.BRANCH_NAME }}"
+          echo "ACCOUNT ID: ${{ steps.set-env.outputs.ACCOUNT_ID }}"
+          echo "DEPLOY ROLE: ${{ steps.set-env.outputs.DEPLOY_ROLE }}"
+          echo "TRUST ROLE: ${{ steps.set-env.outputs.TRUST_ROLE }}"
+          echo "REGION: ${{ steps.set-env.outputs.REGION }}"
+          echo "=============================="
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ steps.set-env.outputs.ACCOUNT_ID }}
+          workload-deploy-role: ${{ steps.set-env.outputs.DEPLOY_ROLE }}
+          github-trust-role: ${{ steps.set-env.outputs.TRUST_ROLE }}
+          aws-region: ${{ steps.set-env.outputs.REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Create Changeset
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name ${{ steps.set-env.outputs.BRANCH_NAME }} --debug true
+
+  Manual_Approval:
     needs: Create-Changeset
     runs-on: ubuntu-latest
+    environment: Manual-Approval
+    steps:
+      - name: Changeset request approved
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
+
+  Deploy:
+    needs: Manual_Approval
+    runs-on: ubuntu-latest
+    environment: test-otds-nonprod
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -108,4 +143,19 @@ jobs:
           echo "TRUST_ROLE: ${{ needs.Create-Changeset.outputs.TRUST_ROLE }}"
           echo "REGION: ${{ needs.Create-Changeset.outputs.REGION }}"
 
-      # Other deployment steps...
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ needs.Create-Changeset.outputs.ACCOUNT_ID }}
+          workload-deploy-role: ${{ needs.Create-Changeset.outputs.DEPLOY_ROLE }}
+          github-trust-role: ${{ needs.Create-Changeset.outputs.TRUST_ROLE }}
+          aws-region: ${{ needs.Create-Changeset.outputs.REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Deploy Infra
+        run: |
+          chmod +x scripts/deploy.sh
+          echo "Deploying the changeset"
+          scripts/deploy.sh --environment-name ${{ needs.Create-Changeset.outputs.BRANCH_NAME }} --debug true
