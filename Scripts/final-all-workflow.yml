@@ -1,0 +1,140 @@
+name: Deploy Infrastructure
+run-name: ${{ github.workflow }} triggered by ${{ github.actor }}
+
+on:
+  push:
+    branches:
+      - npd-dev
+      - npd-st
+      - npd-sit
+      - nft-internal
+      - nft-customer
+      - prd-internal
+      - prd-customer
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Create-Changeset:
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set Environment Variables
+        run: |
+          # Create a JSON object mapping branch names to environment variables
+          ENV_VARS='{
+            "npd-dev": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_DEV }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE }}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            },
+            "npd-st": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_ST }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE }}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            },
+            "npd-sit": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_SIT }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE }}",
+              "REGION": "${{ vars.AWS_REGION_NPD }}"
+            },
+            "nft-internal": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_INTERNAL }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE }}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            },
+            "nft-customer": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_CUSTOMER }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_NFT }}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            },
+            "prd-internal": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_INTERNAL }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE }}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            },
+            "prd-customer": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_CUSTOMER }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE}}",
+              "REGION": "${{ vars.AWS_REGION }}"
+            }
+          }'
+
+          # Get the current branch name without 'refs/heads/'
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+
+          # Extract environment variables from the JSON based on the branch
+          ACCOUNT_ID=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].ACCOUNT_ID')
+          DEPLOY_ROLE=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].DEPLOY_ROLE')
+          TRUST_ROLE=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].TRUST_ROLE')
+          REGION=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].REGION')
+
+          # Export the environment variables
+          echo "ACCOUNT_ID=${ACCOUNT_ID}" >> $GITHUB_ENV
+          echo "DEPLOY_ROLE=${DEPLOY_ROLE}" >> $GITHUB_ENV
+          echo "TRUST_ROLE=${TRUST_ROLE}" >> $GITHUB_ENV
+          echo "REGION=${REGION}" >> $GITHUB_ENV
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ env.ACCOUNT_ID }}
+          workload-deploy-role: ${{ env.DEPLOY_ROLE }}
+          github-trust-role: ${{ env.TRUST_ROLE }}
+          aws-region: ${{ env.REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Create Changeset
+        run: |
+          chmod +x scripts/create-changeset.sh
+          scripts/create-changeset.sh --environment-name ${{ github.ref_name }} --debug true
+
+  Manual_Approval:
+    needs: Create-Changeset
+    runs-on: default
+    environment: Manual-Approval
+    steps:
+      - name: Review Request
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
+
+  Deploy:
+    needs: Manual_Approval
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Changeset Approval 
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ env.ACCOUNT_ID }}
+          workload-deploy-role: ${{ env.DEPLOY_ROLE }}
+          github-trust-role: ${{ env.TRUST_ROLE }}
+          aws-region: ${{ env.REGION }}
+
+      - name: whoami
+        run: aws sts get-caller-identity
+
+      - name: Deploy Infra
+        run: |
+          chmod +x scripts/deploy.sh
+          echo "Deploying the changeset"
+          scripts/deploy.sh --environment-name ${{ github.ref_name }} --debug true
