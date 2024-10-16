@@ -1,0 +1,111 @@
+name: Deploy Infrastructure
+run-name: ${{ github.workflow }} triggered by ${{ github.actor }}
+
+on:
+  push:
+    branches:
+      - npd-dev
+      - npd-st
+      - npd-sit
+      - nft-internal
+      - nft-customer
+      - prd-internal
+      - prd-customer
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Create-Changeset:
+    runs-on: ubuntu-latest
+    outputs:
+      ACCOUNT_ID: ${{ steps.set-env.outputs.ACCOUNT_ID }}
+      DEPLOY_ROLE: ${{ steps.set-env.outputs.DEPLOY_ROLE }}
+      TRUST_ROLE: ${{ steps.set-env.outputs.TRUST_ROLE }}
+      REGION: ${{ steps.set-env.outputs.REGION }}
+      BRANCH_NAME: ${{ steps.set-env.outputs.BRANCH_NAME }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set Environment Variables
+        id: set-env
+        run: |
+          # Create a JSON object mapping branch names to environment variables
+          ENV_VARS='{
+            "npd-dev": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_DEV }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "npd-st": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_ST }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "npd-sit": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_SIT }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "nft-internal": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_INTERNAL }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "nft-customer": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_CUSTOMER }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_NFT }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "prd-internal": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_INTERNAL }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            },
+            "prd-customer": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_CUSTOMER }}",
+              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "REGION": "${{ vars.AWS_REGION_COMMON }}"
+            }
+          }'
+
+          # Get the current branch name without 'refs/heads/'
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')         
+
+          # Extract environment variables from the JSON based on the branch
+          ACCOUNT_ID=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].ACCOUNT_ID')
+          DEPLOY_ROLE=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].DEPLOY_ROLE')
+          TRUST_ROLE=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].TRUST_ROLE')
+          REGION=$(echo $ENV_VARS | jq -r --arg branch "$BRANCH_NAME" '.[$branch].REGION')
+
+          # Set outputs for next jobs
+          echo "ACCOUNT_ID=${ACCOUNT_ID}" >> $GITHUB_ENV
+          echo "DEPLOY_ROLE=${DEPLOY_ROLE}" >> $GITHUB_ENV
+          echo "TRUST_ROLE=${TRUST_ROLE}" >> $GITHUB_ENV
+          echo "REGION=${REGION}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+  Deploy:
+    needs: Create-Changeset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Check Environment Variables
+        run: |
+          echo "ACCOUNT_ID: ${{ needs.Create-Changeset.outputs.ACCOUNT_ID }}"
+          echo "DEPLOY_ROLE: ${{ needs.Create-Changeset.outputs.DEPLOY_ROLE }}"
+          echo "TRUST_ROLE: ${{ needs.Create-Changeset.outputs.TRUST_ROLE }}"
+          echo "REGION: ${{ needs.Create-Changeset.outputs.REGION }}"
+
+      # Other deployment steps...
