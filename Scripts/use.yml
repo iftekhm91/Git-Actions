@@ -18,7 +18,8 @@ permissions:
 
 jobs:
   Create-Changeset:
-    runs-on: ubuntu-latest
+    runs-on: default
+    environment: test-otds-nonprod
     outputs:
       ACCOUNT_ID: ${{ steps.set-env.outputs.ACCOUNT_ID }}
       DEPLOY_ROLE: ${{ steps.set-env.outputs.DEPLOY_ROLE }}
@@ -73,7 +74,7 @@ jobs:
             "prd-customer": {
               "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_CUSTOMER }}",
               "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
-              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
+              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON}}",
               "REGION": "${{ vars.AWS_REGION_COMMON }}"
             }
           }'
@@ -94,6 +95,7 @@ jobs:
           echo "REGION=${REGION}" >> $GITHUB_OUTPUT
           echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
 
+
       - name: Environment to Deploy
         run: |
           echo "Environment being used for this deployment:"
@@ -103,6 +105,7 @@ jobs:
           echo "TRUST ROLE: ${{ steps.set-env.outputs.TRUST_ROLE }}"
           echo "REGION: ${{ steps.set-env.outputs.REGION }}"
           echo "=============================="
+
 
       - name: Assume CICD Role
         uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
@@ -122,26 +125,37 @@ jobs:
 
   Manual_Approval:
     needs: Create-Changeset
-    runs-on: ubuntu-latest
+    runs-on: default
     environment: Manual-Approval
     steps:
       - name: Changeset request approved
         run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
-
-  Deploy:
-    needs: Manual_Approval
-    runs-on: ubuntu-latest
-    environment: test-otds-nonprod
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
+      
       - name: Check Environment Variables
         run: |
           echo "ACCOUNT_ID: ${{ needs.Create-Changeset.outputs.ACCOUNT_ID }}"
           echo "DEPLOY_ROLE: ${{ needs.Create-Changeset.outputs.DEPLOY_ROLE }}"
           echo "TRUST_ROLE: ${{ needs.Create-Changeset.outputs.TRUST_ROLE }}"
           echo "REGION: ${{ needs.Create-Changeset.outputs.REGION }}"
+
+
+  Deploy:
+    needs: Manual_Approval
+    runs-on: default
+    environment: test-otds-nonprod
+    steps:
+      - name: Changeset Approval 
+        run: echo "The Changeset has been approved, proceeding to Deploy-Changeset."
+      
+      - name: Check Environment Variables
+        run: |
+          echo "ACCOUNT_ID: ${{ needs.Create-Changeset.outputs.ACCOUNT_ID }}"
+          echo "DEPLOY_ROLE: ${{ needs.Create-Changeset.outputs.DEPLOY_ROLE }}"
+          echo "TRUST_ROLE: ${{ needs.Create-Changeset.outputs.TRUST_ROLE }}"
+          echo "REGION: ${{ needs.Create-Changeset.outputs.REGION }}"
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
 
       - name: Assume CICD Role
         uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
