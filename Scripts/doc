@@ -1,0 +1,89 @@
+### Title for the Page
+
+**"GitHub Actions Workflow: Deploy Infrastructure"**
+
+### Detailed Step-by-Step Documentation for Your Workflow
+
+#### Overview
+This document outlines the GitHub Actions workflow used for deploying infrastructure. The workflow is triggered by pushes to specific branches and consists of two main jobs: `Create-Changeset` and `Deploy-Changeset`. 
+
+#### Trigger
+- The workflow is triggered on a push to any of the following branches:
+  - `npd-dev`
+  - `npd-st`
+  - `npd-sit`
+  - `nft-internal`
+  - `nft-customer`
+  - `prd-internal`
+  - `prd-customer`
+
+#### Jobs
+
+##### 1. Create-Changeset
+- **Environment**: `test-create-changeset`
+- **Purpose**: Prepare the environment variables and create a changeset for deployment.
+
+###### Steps:
+1. **Check out repository code**
+   - Action: Uses `actions/checkout@v4` to pull the latest code from the repository.
+
+2. **Set Environment Variables**
+   - Action: This step sets the necessary environment variables based on the branch being pushed.
+   - Variables:
+     - A JSON object maps branch names to corresponding AWS account IDs, deploy roles, trust roles, and regions.
+   - Outputs:
+     - `ACCOUNT_ID`
+     - `DEPLOY_ROLE`
+     - `TRUST_ROLE`
+     - `REGION`
+     - `BRANCH_NAME`
+
+3. **Environment to Deploy**
+   - Action: Displays the environment variables set in the previous step.
+   - Output:
+     - Shows the current environment being used for deployment.
+
+4. **Assume CICD Role**
+   - Action: Uses `CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main` to assume the necessary AWS role using the outputs from the previous steps.
+
+5. **whoami**
+   - Action: Runs the AWS command `aws sts get-caller-identity` to verify the identity of the caller after assuming the role.
+
+6. **Create Changeset**
+   - Action: Executes a script (`scripts/create-changeset.sh`) to create a changeset for deployment using the branch name and debugging information.
+
+---
+
+##### 2. Deploy-Changeset
+- **Environment**: `test-deploy-changeset`
+- **Dependencies**: This job runs after the successful completion of the `Create-Changeset` job.
+
+###### Steps:
+1. **Changeset Approval**
+   - Action: Simple step that confirms the changeset has been approved before proceeding to deploy.
+
+2. **Check Environment Variables**
+   - Action: Displays the environment variables passed from the `Create-Changeset` job, ensuring the correct values are being used.
+
+3. **Check out repository code**
+   - Action: Similar to the previous job, it pulls the latest code from the repository.
+
+4. **Assume CICD Role**
+   - Action: Uses the same role assumption step as in the `Create-Changeset` job.
+
+5. **whoami**
+   - Action: Verifies the caller’s identity again using the AWS command.
+
+6. **Deploy Infra**
+   - Action: Executes a deployment script (`scripts/deploy.sh`) to apply the changeset created earlier, passing the environment name and enabling debug output.
+
+---
+
+#### Conclusion
+This workflow automates the deployment of infrastructure by ensuring that the correct environment variables are set based on the branch being pushed. It performs the necessary role assumptions and executes scripts to create and deploy changesets efficiently. 
+
+### Additional Notes
+- Ensure that the necessary permissions and IAM roles are set up in AWS for the actions to execute successfully.
+- Regularly monitor and review the outputs for any errors during execution.
+
+Feel free to customize any sections based on your team's specific needs or practices! If you have more details to include or need further adjustments, just let me know.
