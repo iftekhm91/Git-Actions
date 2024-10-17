@@ -1,0 +1,292 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Additional policies for CloudFormationAdminRole
+
+Parameters:
+  RoleName:
+    Type: String
+    Description: Name of CloudFormation role to attach policies to
+    Default: CloudFormationAdminRole
+
+Resources:
+  # This policy adds the missing EFS permissions to the CloudFormationAdminRole 
+  # in order to provision EFS resources using CFN
+  CfnAdminRoleEfsPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleEfsPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EfsPermissions
+            Effect: Allow
+            Action:
+              - elasticfilesystem:CreateFileSystem
+              - elasticfilesystem:UpdateFileSystem
+              - elasticfilesystem:DescribeFileSystems
+              - elasticfilesystem:DeleteFileSystem
+              - elasticfilesystem:CreateAccessPoint
+              - elasticfilesystem:DeleteAccessPoint
+              - elasticfilesystem:CreateMountTarget
+              - elasticfilesystem:Describe*
+              - elasticfilesystem:ModifyMountTargetSecurityGroups
+              - elasticfilesystem:DeleteMountTarget
+              - elasticfilesystem:PutLifecycleConfiguration
+              - elasticfilesystem:DescribeLifecycleConfiguration
+              - elasticfilesystem:CreateTags
+              - elasticfilesystem:TagResource
+              - elasticfilesystem:ListTagsForResource
+              - elasticfilesystem:UntagResource
+              - elasticfilesystem:PutBackupPolicy
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                - ap-southeast-2
+            Resource: !Sub "arn:aws:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:*"
+  
+  CfnAdminRoleIamPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleIamPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: IamPolicyTagging
+            Effect: Allow
+            Action:
+              - iam:TagPolicy
+              - iam:UntagPolicy
+              - iam:ListPolicyTags
+            Resource:
+              !Sub 'arn:aws:iam::${AWS::AccountId}:policy/*'
+
+  CfnAdminRoleS3Permissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleS3Permissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: S3Permissions
+            Effect: Allow
+            Action:
+              - s3:CreateBucket
+            Condition:
+              StringEquals:
+                s3:LocationConstraint:
+                - ap-southeast-2
+            Resource: "*"
+
+  CfnAdminRoleEventBridgeSchedulerPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleEventBridgeSchedulerPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EventBridgeScheduler
+            Effect: Allow
+            Action:
+              - scheduler:CreateSchedule
+              - scheduler:CreateScheduleGroup
+              - scheduler:DeleteSchedule
+              - scheduler:DeleteScheduleGroup
+              - scheduler:GetSchedule
+              - scheduler:GetScheduleGroup
+              - scheduler:ListScheduleGroups
+              - scheduler:ListSchedules
+              - scheduler:ListTagsForResource
+              - scheduler:TagResource
+              - scheduler:UntagResource
+              - scheduler:UpdateSchedule
+            NotResource:
+              - 'arn:aws:scheduler:*:*:schedule-group/cns*'
+              - 'arn:aws:scheduler:*:*:schedule/cns*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                - ap-southeast-2
+
+  CfnAdminRoleStepFunctionPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleStepFunctionPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: StepFunctionPermissions
+            Effect: Allow
+            Action:
+              - states:CreateActivity
+              - states:CreateStateMachine
+              - states:DescribeActivity
+              - states:DescribeStateMachine
+              - states:UpdateStateMachine
+              - states:TagResource
+              - states:UntagResource
+              - states:ListExecutions
+              - states:GetExecutionHistory
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                - ap-southeast-2
+            Resource:
+              - arn:aws:states:*:*:activity:*
+              - arn:aws:states:*:*:execution:*:*
+              - arn:aws:states:*:*:stateMachine:*
+  
+  CfnAdminRoleSnsPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleSnsPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SnsPermissions
+            Effect: Allow
+            Action:
+              - sns:CreateTopic
+              - sns:DeleteTopic
+              - sns:TagResource
+              - sns:UntagResource
+              - sns:Unsubscribe
+              - sns:ConfirmSubscription
+              - sns:Subscribe
+
+            NotResource:
+              - "arn:aws:sns:*:*:cns*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"
+
+  CfnAdminRoleEC2NetworkPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleEC2NetworkPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EC2Permissions
+            Effect: Allow
+            Action:
+              - ec2:DescribeNetworkInterfaces
+              - ec2:CreateNetworkInterface
+              - ec2:DeleteNetworkInterface
+              - ec2:DescribeRegions
+              - ec2:DescribeInstances
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeSubnets
+              - ec2:DescribeVpcEndpoints
+              - ec2:ModifyNetworkInterfaceAttribute
+              - ec2:AttachNetworkInterface
+            Resource:
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"
+               
+          - Sid: EC2NetworkPermissions
+            Effect: Allow
+            Action:             
+              - ec2:CreateNetworkInterfacePermission
+            Resource: 
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"               
+
+  CfnAdminRoleCloudWatchPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleCloudWatchPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CloudWatchPermissions
+            Effect: Allow
+            Action:
+              - logs:getLogEvents
+              - logs:getFilteredLogEvents
+              - logs:getLogStream
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+              - logs:FilterLogEvents
+              - logs:DeleteLogGroup
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"  
+              StringNotEqualsIfExists:
+                aws:ResourceTag/cns-guardrail: 'true'
+
+  CfnAdminRoleAWSSecretPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleAWSSecretPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SecretsManagerPermissions
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:CancelRotateSecret
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:PutSecretValue
+              - secretsmanager:RotateSecret
+              - secretsmanager:UpdateSecret
+              - secretsmanager:UpdateSecretVersionStage
+              - secretsmanager:TagResource
+              - secretsmanager:UntagResource
+              - secretsmanager:GetSecretValue
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"                
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'    
+  
+
+  CfnAdminRoleAWSDataSyncPermissions:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref RoleName
+      PolicyName: CfnAdminRoleAWSDatasyncPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CreateLocationTaskforDatasync
+            Effect: Allow
+            Action:
+              - datasync:CreateLocationS3
+              - datasync:CreateTask
+              - datasync:DescribeTask
+              - datasync:ListTasks
+              - datasync:UpdateTask
+              - datasync:StartTaskExecution
+              - datasync:StopDiscoveryJob
+              - datasync:CancelTaskExecution
+              - datasync:CreateAgent
+              - datasync:CreateLocationSmb
+              - datasync:DeleteAgent
+              - datasync:DeleteLocation
+              - datasync:DeleteTask
+              - datasync:ListAgents
+              - datasync:ListLocations
+              - datasync:ListTaskExecutions
+              - datasync:UpdateAgent
+              - datasync:TagResource
+              - datasync:UntagResource              
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: "ap-southeast-2"                
+            Resource: !Sub 'arn:aws:datasync:${AWS::Region}:${AWS::AccountId}:*'    
+
+  
