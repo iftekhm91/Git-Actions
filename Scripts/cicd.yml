@@ -197,6 +197,14 @@ Resources:
                 aws:RequestedRegion:
                 - ap-southeast-2
             Resource: !Sub "arn:aws:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:*"
+          - Sid: CreateServiceLinkedRolePermission
+            Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource: "*"
+            Condition:
+              StringEquals:
+                iam:AWSServiceName: "elasticfilesystem.amazonaws.com"
           - Sid: ReadParameters
             Effect: Allow
             Action:
@@ -205,3 +213,4 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: ap-southeast-2
+          
