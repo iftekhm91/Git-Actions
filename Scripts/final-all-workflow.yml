@@ -19,7 +19,7 @@ permissions:
 jobs:
   Create-Changeset:
     runs-on: default
-    environment: NonProd-Create-Changeset
+    environment: test-create-changeset
     outputs:
       ACCOUNT_ID: ${{ steps.set-env.outputs.ACCOUNT_ID }}
       DEPLOY_ROLE: ${{ steps.set-env.outputs.DEPLOY_ROLE }}
@@ -127,7 +127,7 @@ jobs:
   Deploy-Changeset:
     needs: Create-Changeset
     runs-on: default
-    environment: NonProd-Deploy-Changeset
+    environment: test-deploy-changeset
     steps:
       - name: Changeset Approval 
         run: echo "The Changeset has been approved, proceeding to Deploy Changeset."
