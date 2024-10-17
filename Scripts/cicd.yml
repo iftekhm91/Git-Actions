@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Github CICD role with permissions which would be assumed by the Github OIDC role
+
+Parameters:
+  EnvironmentName:
+    Type: "String"
+
+Conditions:
+  IsProd: !Equals
+    - !Ref EnvironmentName
+    - prd
+
+Resources:
+  GithubCICDRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "GithubCICDRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+              - sts:TagSession
+            Effect: Allow
+            Condition:
+              StringEquals:
+                aws:SourceVpc:
+                  'Fn::If':
+                    - IsProd
+                    - ["vpc-0ebb4ee6c9c0859a3"] # prod gha runner vpc
+                    - ["vpc-0ebb4ee6c9c0859a3", "vpc-00caa94553285860e" ] # non-prod gha runner vpc - temporary
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/GithubOIDCRole"
+      ManagedPolicyArns:
+        - !Ref GithubCICDPolicy
+  GithubCICDPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: "GithubCICDPolicy"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: S3PermissionSet1
+            Action:
+              - s3:CreateBucket
+            Effect: Allow
+            Resource: "*"
+            Condition:
+              StringEquals:
+                s3:LocationConstraint:
+                  - ap-southeast-2
+          - Sid: S3PermissionSet2
+            Action:
+              - s3:AbortMultipartUpload
+              - s3:CreateStorageLensGroup
+              - s3:DeleteBucket
+              - s3:DeleteBucketPolicy
+              - s3:DeleteBucketWebsite
+              - s3:DeleteObject
+              - s3:DeleteObjectTagging
+              - s3:DeleteObjectVersion
+              - s3:DeleteObjectVersionTagging
+              - s3:DeleteStorageLensGroup
+              - s3:PutAccelerateConfiguration
+              - s3:PutAnalyticsConfiguration
+              - s3:PutBucketCORS
+              - s3:PutBucketLogging
+              - s3:PutBucketNotification
+              - s3:PutBucketOwnershipControls
+              - s3:PutBucketPolicy
+              - s3:PutBucketRequestPayment
+              - s3:PutBucketTagging
+              - s3:PutBucketVersioning
+              - s3:PutBucketWebsite
+              - s3:PutEncryptionConfiguration
+              - s3:PutInventoryConfiguration
+              - s3:PutLifecycleConfiguration
+              - s3:PutMetricsConfiguration
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:PutObjectTagging
+              - s3:PutObjectVersionAcl
+              - s3:PutObjectVersionTagging
+              - s3:ReplicateDelete
+              - s3:ReplicateObject
+              - s3:ReplicateTags
+              - s3:RestoreObject
+              - s3:TagResource
+              - s3:UntagResource
+            Effect: Allow
+            NotResource:
+              - arn:aws:s3:::cns*
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: S3PermissionSet3
+            Action:
+              - s3:Get*
+              - s3:List*
+              - s3:DescribeJob
+            Effect: Allow
+            Resource: "*"
+          - Sid: CloudFormationPermissionSet1
+            Action:
+              - cloudformation:CancelUpdateStack
+              - cloudformation:ContinueUpdateRollback
+              - cloudformation:CreateChangeSet
+              - cloudformation:CreateGeneratedTemplate
+              - cloudformation:CreateStack
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DeleteGeneratedTemplate
+              - cloudformation:DeleteStack
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:RollbackStack
+              - cloudformation:SetStackPolicy
+              - cloudformation:SignalResource
+              - cloudformation:StartResourceScan
+              - cloudformation:TagResource
+              - cloudformation:UntagResource
+              - cloudformation:UpdateGeneratedTemplate
+              - cloudformation:UpdateStack
+              - cloudformation:UpdateTerminationProtection
+              - cloudformation:ValidateTemplate
+            Effect: Allow
+            NotResource:
+              - arn:aws:cloudformation:*:*:stack/StackSet*
+              - arn:aws:cloudformation:*:*:stack/cns*
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: CloudFormationPermissionSet2
+            Action:
+              - cloudformation:Describe*
+              - cloudformation:Detect*
+              - cloudformation:Estimate*
+              - cloudformation:Get*
+              - cloudformation:List*
+            Effect: Allow
+            Resource: "*"
+          - Sid: SMReadAccess
+            Action:
+              - secretsmanager:Describe*
+              - secretsmanager:GetSecretValue
+              - secretsmanager:List*
+            Effect: Allow
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: SMGenerateRandomPwdAccess
+            Action:
+              - secretsmanager:GetRandomPassword
+            Effect: Allow
+            Resource: "*"
+          - Sid: SMWriteAccess
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:CancelRotateSecret
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:PutSecretValue
+              - secretsmanager:RotateSecret
+              - secretsmanager:UpdateSecret
+              - secretsmanager:UpdateSecretVersionStage
+              - secretsmanager:TagResource
+              - secretsmanager:UntagResource
+            Effect: Allow
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: EfsPermissions
+            Effect: Allow
+            Action:
+              - elasticfilesystem:CreateFileSystem
+              - elasticfilesystem:UpdateFileSystem
+              - elasticfilesystem:DescribeFileSystems
+              - elasticfilesystem:DeleteFileSystem
+              - elasticfilesystem:CreateAccessPoint
+              - elasticfilesystem:DeleteAccessPoint
+              - elasticfilesystem:CreateMountTarget
+              - elasticfilesystem:Describe*
+              - elasticfilesystem:ModifyMountTargetSecurityGroups
+              - elasticfilesystem:DeleteMountTarget
+              - elasticfilesystem:PutLifecycleConfiguration
+              - elasticfilesystem:DescribeLifecycleConfiguration
+              - elasticfilesystem:CreateTags
+              - elasticfilesystem:TagResource
+              - elasticfilesystem:ListTagsForResource
+              - elasticfilesystem:UntagResource
+              - elasticfilesystem:PutBackupPolicy
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                - ap-southeast-2
+            Resource: !Sub "arn:aws:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:*"
+          - Sid: ReadParameters
+            Effect: Allow
+            Action:
+              - ssm:GetParameter*
+            Resource: '*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: ap-southeast-2
