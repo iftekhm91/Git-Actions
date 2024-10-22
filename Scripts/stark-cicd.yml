@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Github CICD role with permissions which would be assumed by the Github OIDC role
+
+Parameters:
+  EnvironmentName:
+    Type: "String"
+  CloudFormationAdminRoleName:
+    Description: Cloudformation Role Name
+    Type : String
+    Default: CloudFormationAdminRole
+
+Conditions:
+  IsProd: !Equals
+    - !Ref EnvironmentName
+    - prod
+
+Resources:
+  GithubCICDRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "GithubCICDRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+              - sts:TagSession
+            Effect: Allow
+            Condition:
+              StringEquals:
+                aws:SourceVpc:
+                  'Fn::If':
+                    - IsProd
+                    - ["vpc-0ebb4ee6c9c0859a3"] # prod gha runner vpc
+                    - ["vpc-0ebb4ee6c9c0859a3", "vpc-00caa94553285860e" ] # non-prod gha runner vpc - temporary
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/GithubOIDCRole"
+      ManagedPolicyArns:
+        - !Ref GithubCICDPolicy
+
+  GithubCICDPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: "GithubCICDPolicy"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: LambdaPermissions
+            Effect: Allow
+            Action:
+              - lambda:GetFunction
+              - lambda:CreateFunction
+              - lambda:DeleteFunction
+              - lambda:UpdateFunctionCode
+            Resource: "arn:aws:lambda:*:*:function:dialog*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: ap-southeast-2
+
+          - Sid: ServiceCatalogReading
+            Effect: Allow
+            Action:
+              - servicecatalog:ProvisionProduct
+              - servicecatalog:DescribeRecord
+              - servicecatalog:DescribeProvisionedProduct
+            Resource: "*"
+          - Sid: ServiceCatalogWriting
+            Effect: Allow
+            Action:
+              - servicecatalog:TerminateProvisionedProduct
+              - servicecatalog:UpdateProvisionedProduct
+            Resource: "*"
+            Condition:
+              StringEquals:
+                servicecatalog:accountLevel: self
+          - Sid: AllowKMSAccess
+            Effect: Allow
+            Action:
+              - "kms:GenerateDataKey*"
+            Resource: "*"
+          - Sid: SsmPermissionsReading
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:DescribeAssociation              
+            Resource: "*"
+          - Sid: SsmPermissionsWriting
+            Effect: Allow
+            Action:
+              - ssm:AddTagsToResource
+              - ssm:PutParameter
+              - ssm:DeleteParameter
+            NotResource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/CNS/**"
+            Condition:
+              StringNotEqualsIgnoreCase:
+                ssm:ResourceTag/cns-guardrail: 'true'
+          - Sid: S3PermissionSet
+            Action:
+              - s3:PutObject
+              - s3:ListBucket
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:DeleteBucket
+              - s3:CreateBucket
+              - s3:PutBucketTagging
+              - s3:PutBucketVersioning
+              - s3:GetEncryptionConfiguration
+              - s3:PutEncryptionConfiguration
+              - s3:PutBucketPolicy
+              - s3:GetBucketPolicy
+              - s3:DeleteBucketPolicy
+              - s3:GetBucketLocation
+              - s3:GetBucketNotification
+              - s3:PutBucketNotification
+              - s3:PutLifecycleConfiguration
+              - s3:GetReplicationConfiguration
+            Effect: Allow
+            NotResource: "arn:aws:s3:::cns*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: SMReadAccess
+            Action:
+              - secretsmanager:Describe*
+              - secretsmanager:GetSecretValue
+              - secretsmanager:List*
+            Effect: Allow
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+          - Sid: SMGenerateRandomPwdAccess
+            Action:
+              - secretsmanager:GetRandomPassword
+            Effect: Allow
+            Resource: "*"
+          - Sid: SMWriteAccess
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:CancelRotateSecret
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:PutSecretValue
+              - secretsmanager:RotateSecret
+              - secretsmanager:UpdateSecret
+              - secretsmanager:UpdateSecretVersionStage
+              - secretsmanager:TagResource
+              - secretsmanager:UntagResource
+            Effect: Allow
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+            Condition:
+              StringEquals:
+                aws:RequestedRegion:
+                  - ap-southeast-2
+
+          - Sid: PassCloudformationRole
+            Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource:
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${CloudFormationAdminRoleName}"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: ap-southeast-2
