@@ -1,0 +1,431 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The root stack for deploying all the resources for dialogue application solution"
+Parameters:
+  NLBTemplateURL:
+    Description: "URL of the NLB template"
+    Type: String
+  ArtifactsBucketName:
+    Description: "Name of the artifacts bucket. The bucket that stores the ALB template."
+    Type: String
+  ApplicationName:
+    Type: String
+    Description: "[Required] Unique application name"
+    AllowedPattern: ".+"
+  DataClassification:
+    Type: String
+    Description: "Data Classification"
+    Default: Confidential
+    AllowedValues: [GroupUse, Public, Confidential, CustomerPersonal, HighlyProtected]
+  EnvironmentName:
+    Type: String
+    Description: "[Required] Environment name"
+    AllowedValues: [nonprod, stg, prod]
+  XcomEndpoint:
+    Type: String
+    Description: Proxy DNS name to be used by application
+    AllowedValues: [xcom.prod, xcom.stg, xcom.nonprod]
+  # NlbType:
+  #   Type: String
+  #   Description: Is it an external (internet-facing) or internal ALB?
+  #   Default: internal
+  #   AllowedValues: [internal,internet-facing]
+  # ASG Generic Parameters
+  EBSSize:
+    Type: Number
+    Description: "[Required] Size of root EBS volume"
+    Default: 50
+  EBSType:
+    Type: String
+    Description: "[Required] EBS Volume Type"
+    Default: gp3
+    AllowedValues: [gp2, gp3, io1, io2, sc1, st1, standard]
+  EBSIOPS:
+    Type: Number
+    Description: "[Required only for gp3 (default 3,000), io1 and io2 volumes]. This parameter is not applicable for other EBS volume types (sc1, st1, standard), please leave it as the default number if that is the case."
+    Default: 3000
+  EBS2DeviceName:
+    Description: "[Required] If the VM is HVM type, 2nd EBS Device Name:/dev/sd[b-z] or /dev/xvd[b-c][a-z] depending on linux or windows OS (check naming convension: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html)."
+    Type: String
+    Default: "/dev/xvda"
+  EBS2Size:
+    Description: "[Required] Size of 2nd EBS volume."
+    Type: Number
+    Default: 3072
+  EBS2Type:
+    Description: "[Required] 2nd EBS Volume Type."
+    Type: String
+    AllowedValues: [gp2, gp3, io1, io2, sc1, st1, standard, ""]
+    Default: gp3
+  EBS2IOPS:
+    Description: "[Required] 2nd EBS Volume size."
+    Type: Number
+    Default: 3000
+  InstanceProfileName:
+    Type: String
+    Description: "[Optional] The instance profile name for EC2. Standard L2 BP Instance Profile for the tenants (if pre-created). If not provided, a new profile will be created with minimum permessions to read from ConfigureStore bucket and read a sample secret stored in secrets manager"
+    Default: xcom-ec2-instance-profile
+  InstanceType:
+    Type: String
+    Description: "[Required] Any valid EC2 instance size is allowed (https://aws.amazon.com/ec2/instance-types/)"
+    Default: t3.micro
+    AllowedPattern: ".+"
+  AsgSecurityGroups:
+    Type: String
+    Description: "[Optional] Existing security groups to associate with instances. If not provided, a new security group will be created"
+    AllowedPattern: ^$|^(sg-[a-z0-9]+,?)+$
+  OsType:
+    Type: String
+    Description: "[Required] Operating system"
+    Default: windows
+    AllowedValues: [windows, linux]
+  DesiredCapacity:
+    Type: String
+    Description: "[Required] Desired Cluster Size. The maximum number of instances to scale up to based on policies"
+    Default: '1'
+  InstanceCountMin:
+    Type: String
+    Description: "[Required] Min Cluster Size. The minimum number of instances to scale down to based on policies"
+    Default: '1'
+  InstanceCountMax:
+    Type: String
+    Description: "[Required] Max Cluster Size. The maximum number of instances to scale up to based on policies"
+    Default: '6'
+  HealthCheckGracePeriod:
+     Description: Number of seconds that Amazon EC2 Auto Scaling waits before checking the health status of an EC2 instance that has come into service
+     Type: String
+     Default: 1500
+  SnsTopicArn:
+    Type: String
+    Description: "[Optional] Topic arn to receive notifications about autoscaling activities. If not provided, a new sns topic will be created"
+    AllowedPattern: ^$|^arn:aws:sns:.+:\d{12}:.+
+    Default: ""
+  # Backend app related parameter
+  AppPort:
+    Type: Number
+    Description: "Listening port of the application"
+    Default: 8044
+  AppSoe:
+    Type: String
+    Description: "[Optional] sampleapp SOE AMI to be used. If not provided, latest windows or linux ami will be used"
+    Default: ""
+  UserDataS3script:
+    Type: String
+    Description: "[Optional] Please provide the script KeyName under S3 bucket e.g: '/abc/scripts.sh', if the script under abc folder named as scripts.sh"
+  LatestWindowsAmiId:
+    Type: String
+    Description: "[Required only for Windows OsType] Latest CBA Approved Windows AMI Id"
+    AllowedPattern: ^$|^ami-[a-z0-9]{8,17}$
+    Default: "ami-0c33882ef40bb3e6e"
+  LatestLinuxAmiId:
+    Type: String
+    Description: "[Required only for Linux OsType] Latest CBA Approved Linux AMI Id"
+    AllowedPattern: ^$|^ami-[a-z0-9]{8,17}$
+    Default: ""
+  EC2InstanceProfileRole:
+    Description: XCOM EC2 instance profile role name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/patterns/resources/xcom/instancerolename'
+
+  # ## Custom Tag Parameters
+  CustomTag1Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag1Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag2Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag2Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag3Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag3Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag4Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag4Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag5Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag5Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag6Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag6Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag7Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag7Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag8Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag8Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag9Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag9Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  CustomTag10Name:
+    Default: ""
+    Type: String
+    Description: Custom Tag Name for ASG
+  CustomTag10Value:
+    Default: ""
+    Type: String
+    Description: Custom Tag Value for ASG
+  
+Mappings:
+  AsgProductParameters:
+    default:
+      ProductName: "BP-ASG-Product"
+      ProvisioningArtifactName: "1.0.15"
+      
+Resources:
+  NLBStack:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Properties:
+      TemplateURL: !Ref NLBTemplateURL
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        XcomEndpoint: !Ref XcomEndpoint
+        # AppPort: !Ref AppPort
+        # HealthcheckPath: "/"
+        # NlbType: !Ref NlbType
+        # ArtifactsBucketName: !Ref ArtifactsBucketName
+  AsgProduct:
+    Type: "AWS::ServiceCatalog::CloudFormationProvisionedProduct"
+    Properties:
+      ProductName: !FindInMap ["AsgProductParameters", "default", "ProductName"] 
+      ProvisioningArtifactName: !FindInMap ["AsgProductParameters", "default", "ProvisioningArtifactName"] 
+      ProvisioningParameters:
+        - Key: "NodeName"
+          Value: !Ref ApplicationName
+        - Key: "EBSSize"
+          Value: !Ref "EBSSize"
+        - Key: "EBSType"
+          Value: !Ref "EBSType"
+        - Key: "EBSIOPS"
+          Value: !Ref "EBSIOPS"
+        - Key: "EBS2DeviceName"
+          Value: !Ref "EBS2DeviceName"
+        - Key: "EBS2Size"
+          Value: !Ref "EBS2Size"
+        - Key: "EBS2Type"
+          Value: !Ref "EBS2Type"
+        - Key: "EBS2IOPS"
+          Value: !Ref "EBS2IOPS"
+        - Key: "InstanceProfileName"
+          Value: !Ref "InstanceProfileName"
+        - Key: "InstanceType"
+          Value: !Ref "InstanceType"
+        - Key: "SecurityGroups"
+          Value: !Ref "AsgSecurityGroups"
+        - Key: "OsType"
+          Value: !Ref "OsType"
+        - Key: "DesiredCapacity"
+          Value: !Ref DesiredCapacity
+        - Key: "InstanceCountMin"
+          Value: !Ref InstanceCountMin
+        - Key: "InstanceCountMax"
+          Value: !Ref InstanceCountMax
+        # - Key: "LBTargetGroupArn"
+        #   Value: !GetAtt "NLBStack.Outputs.NLBTargetGroupSSLARN"
+        - Key: "CPUUtilisationTargetValue"
+          Value: "80"
+        - Key: "MinSuccessfulInstancesPercent"
+          Value: "100"
+        - Key: "CfnSignalTimeout"
+          Value: "PT30M5S"
+        - Key: "SecurityZone"
+          Value: "ic"
+        - Key: "DataClassification"
+          Value: !Ref "DataClassification"
+        - Key: "ConfigureStoreBucket"
+          Value: !Ref ArtifactsBucketName
+        - Key: "AppSoe"
+          Value: !Ref "AppSoe"
+        - Key: "UserdataS3script"
+          Value: !Ref "UserDataS3script"
+        - Key: "AppPort"
+          Value: !Ref "AppPort"
+        - Key: "LatestWindowsAmiId"
+          Value: !Ref "LatestWindowsAmiId"
+        - Key: "LatestLinuxAmiId"
+          Value: !Ref LatestLinuxAmiId
+        - Key: "SnsTopicArn"
+          Value: !Ref "SnsTopicArn"
+        - Key: "MinInstancesInService"
+          Value: "1"
+        - Key: "MaxBatchSize"
+          Value: "1"
+        - Key: "HealthCheckGracePeriod"
+          Value: !Ref HealthCheckGracePeriod
+        - Key: "CustomTag1Name"
+          Value: !Ref CustomTag1Name
+        - Key: "CustomTag1Value"
+          Value: !Ref CustomTag1Value
+        - Key: "CustomTag2Name"
+          Value: !Ref CustomTag2Name
+        - Key: "CustomTag2Value"
+          Value: !Ref CustomTag2Value
+        - Key: "CustomTag3Name"
+          Value: !Ref CustomTag3Name
+        - Key: "CustomTag3Value"
+          Value: !Ref CustomTag3Value
+        - Key: "CustomTag4Name"
+          Value: !Ref CustomTag4Name
+        - Key: "CustomTag4Value"
+          Value: !Ref CustomTag4Value
+        - Key: "CustomTag5Name"
+          Value: !Ref CustomTag5Name
+        - Key: "CustomTag5Value"
+          Value: !Ref CustomTag5Value
+        - Key: "CustomTag6Name"
+          Value: !Ref CustomTag6Name
+        - Key: "CustomTag6Value"
+          Value: !Ref CustomTag6Value
+        - Key: "CustomTag7Name"
+          Value: !Ref CustomTag7Name
+        - Key: "CustomTag7Value"
+          Value: !Ref CustomTag7Value
+        - Key: "CustomTag8Name"
+          Value: !Ref CustomTag8Name
+        - Key: "CustomTag8Value"
+          Value: !Ref CustomTag8Value
+        - Key: "CustomTag9Name"
+          Value: !Ref CustomTag9Name
+        - Key: "CustomTag9Value"
+          Value: !Ref CustomTag9Value
+        - Key: "CustomTag10Name"
+          Value: !Ref CustomTag10Name
+        - Key: "CustomTag10Value"
+          Value: !Ref CustomTag10Value
+
+####################################################################################################
+# Below resources are for the termination event queue for the ASG lifecycle hook
+####################################################################################################
+  InstanceTerminateEventDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub cs-exstream-xcom-asg-termination-DLQ-${EnvironmentName}-${AWS::AccountId}-ap-se-2
+      Tags:
+        - Key: DataClassification
+          Value: Confidential
+
+  InstanceTerminateEventQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub cs-exstream-xcom-asg-termination-${EnvironmentName}-${AWS::AccountId}-ap-se-2
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt InstanceTerminateEventDLQ.Arn
+        maxReceiveCount: 5
+      Tags:
+        - Key: DataClassification
+          Value: Confidential
+
+  InstanceTerminateEventQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref InstanceTerminateEventQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowAdmin
+            Action: "sqs:*"
+            Effect: "Allow"
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/AdminUserRole'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/AcoeCICDRole'
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${EC2InstanceProfileRole}"
+            Resource:
+              - !GetAtt InstanceTerminateEventQ.Arn
+          - Sid: AllowASGHook
+            Effect: "Allow"
+            Action:
+              - sqs:SendMessage
+            Principal:
+              Service: autoscaling.amazonaws.com
+            Resource: !GetAtt InstanceTerminateEventQ.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt "AsgProduct.Outputs.AutoScalingGroupName"
+
+#  xcomTerminationLifecycleHook: # need autoscaling:DescribeLifecycleHooks permission and an arn for it
+#    Type: AWS::AutoScaling::LifecycleHook
+#    Properties:
+#      AutoScalingGroupName: !GetAtt "AsgProduct.Outputs.AutoScalingGroupName"
+#      LifecycleHookName: transfer-status-lifecycle-hook
+#      LifecycleTransition: autoscaling:EC2_INSTANCE_TERMINATING
+#      HeartbeatTimeout: '300'
+#      DefaultResult: CONTINUE
+#      NotificationTargetARN: !GetAtt InstanceTerminateEventQ.Arn
+
+####################################################################################################
+# Above resources are for the termination event queue for the ASG lifecycle hook
+####################################################################################################
+
+Outputs:
+  AppNotificationsSnsTopicArn:
+    Description: Application notifications SNS topic ARN
+    Value: !GetAtt "AsgProduct.Outputs.SNSTopicArnName"
+  AppTargetGroupFullName:
+    Description: Network load balancer target group full name
+    Value: !Select [5, !Split [":", !GetAtt "NLBStack.Outputs.NLBTargetGroupARN" ]]
+  AppTargetGroupArn:
+    Description: Network load balancer target group arn for port 8044
+    Value: !GetAtt "NLBStack.Outputs.NLBTargetGroupARN"
+  AppTargetGroupSSLArn:
+    Description: Network load balancer target group arn for port 8045
+    Value: !GetAtt "NLBStack.Outputs.NLBTargetGroupSSLARN"
+  AppNlbFullName:
+    Description: Network load balancer full name
+    Value:  !Join
+      - "/"
+      - 
+        - !Select [1, !Split ["/", !GetAtt "NLBStack.Outputs.NLBARN" ]]
+        - !Select [2, !Split ["/", !GetAtt "NLBStack.Outputs.NLBARN" ]]
+        - !Select [3, !Split ["/", !GetAtt "NLBStack.Outputs.NLBARN" ]]
+  AppAutoScalingGroupName:
+    Description: Application auto scaling group name
+    Value: !GetAtt "AsgProduct.Outputs.AutoScalingGroupName"
+  InstanceTerminateEventQArn:
+    Description: Instance Terminate Event Queue ARN
+    Value: !GetAtt "InstanceTerminateEventQ.Arn"
