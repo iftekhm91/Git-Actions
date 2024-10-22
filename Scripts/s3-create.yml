@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The root stack for deploying all the prerequisites for the main resources stack"
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - I3042
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Description: "[Required] Unique application name"
+    Default: dialogue
+    AllowedPattern: ".+"
+  
+  EnvironmentName:
+    Type: String
+    Description: "[Required] Name of the environment"
+    AllowedValues:
+      - "stg"
+      - "prod"
+      - "nonprod"
+  
+  DataClassification:
+    Type: String
+    Description: "Data Classification"
+    Default: CustomerPersonal
+    AllowedValues: [GroupUse, Public, Confidential, CustomerPersonal, HighlyProtected]
+
+  CostTagServiceId:
+    Default: "/patterns/XCOM/resources/cost-tag/cmdb-app-service-id"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - cmdb-app-service-id"
+
+  CostTagServiceName:
+    Default: "/patterns/XCOM/resources/cost-tag/cmdb-app-service-name"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - cmdb-app-service-name"
+
+  CostTagLandingZone:
+    Default: "/patterns/XCOM/resources/cost-tag/cmdb-ce-landingzone-app-service-id"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - cmdb-ce-landingzone-app-service-id"
+
+  CostTagTechServiceOfferingId:
+    Default: "/patterns/XCOM/resources/cost-tag/cmdb-technical-service-offering-id"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - cmdb-technical-service-offering-id"
+
+  CostTagTechServiceOfferingName:
+    Default: "/patterns/XCOM/resources/cost-tag/cmdb-technical-service-offering-name"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - cmdb-technical-service-offering-name"
+
+  CostTagDataClassification:
+    Default: "/patterns/XCOM/resources/cost-tag/app-data-classification"
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: "Cloudability cost tagging - app-data-classification"
+
+Mappings:
+  S3Parameters:
+    default:
+      S3KeyId: "{{resolve:ssm:/CNS/resources/s3_key_id}}"
+      VpcId: "{{resolve:ssm:/CNS/resources/vpc_id}}"
+  
+Conditions:
+  IsSupportedRegion: !Equals
+    - !Sub ${AWS::Region}
+    - ap-southeast-2
+
+Resources:
+  ArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsSupportedRegion
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: !FindInMap [S3Parameters, default, S3KeyId]
+      Tags:
+        - Key: DataClassification
+          Value: !Ref DataClassification
+        - Key: cmdb-app-service-id
+          Value: !Ref CostTagServiceId
+        - Key: cmdb-app-service-name
+          Value: !Ref CostTagServiceName
+        - Key: cmdb-ce-landingzone-app-service-id
+          Value: !Ref CostTagLandingZone
+        - Key: cmdb-technical-service-offering-id
+          Value: !Ref CostTagTechServiceOfferingId
+        - Key: cmdb-technical-service-offering-name
+          Value: !Ref CostTagTechServiceOfferingName
+        - Key: app-environment
+          Value: !Ref EnvironmentName
+        - Key: app-data-classification
+          Value: !Ref CostTagDataClassification
+
+  ArtifactsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsSupportedRegion
+    Properties:
+      Bucket: !Ref ArtifactsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'DenyHTTPTraffic'
+            Effect: 'Deny'
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              !Sub 'arn:aws:s3:::${ArtifactsBucket}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+  
+  ArtifactsBucketNameSsmParameter:
+    Type: AWS::SSM::Parameter
+    Condition: IsSupportedRegion
+    Properties:
+      Name: !Sub '/${ApplicationName}-${EnvironmentName}/artifacts_bucket'
+      Description: 'Stores the name of the artifacts bucket that has all dialogue infra templates and the ec2 user data script etc.'
+      Value: !Ref ArtifactsBucket
+      Type: String
+      Tags:
+        DataClassification: !Ref DataClassification
+  
+Outputs:
+  ArtifactsBucketName:
+    Condition: IsSupportedRegion
+    Description: "Artifacts bucket name"
+    Value: !Ref ArtifactsBucket
+    Export:
+      Name: !Sub ${ApplicationName}-${EnvironmentName}-artifacts-bucket-name
+  ArtifactsBucketNameSsmParameterStaging:
+    Condition: IsSupportedRegion
+    Description: "Name of the SSM parameter with the artifacts bucket name"
+    Value: !Ref ArtifactsBucketNameSsmParameter
