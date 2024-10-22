@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "The root stack for deploying all the resources for dialogue application solution"
 Parameters:
-  NLBTemplateURL:
-    Description: "URL of the NLB template"
-    Type: String
   ArtifactsBucketName:
     Description: "Name of the artifacts bucket. The bucket that stores the ALB template."
     Type: String
@@ -115,7 +112,7 @@ Parameters:
     Type: String
     Description: "[Required only for Windows OsType] Latest CBA Approved Windows AMI Id"
     AllowedPattern: ^$|^ami-[a-z0-9]{8,17}$
-    Default: "ami-0c33882ef40bb3e6e"
+    Default: "ami-07ac9e34be5127b3d"
   LatestLinuxAmiId:
     Type: String
     Description: "[Required only for Linux OsType] Latest CBA Approved Linux AMI Id"
@@ -220,7 +217,7 @@ Resources:
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
     Properties:
-      TemplateURL: !Ref NLBTemplateURL
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ArtifactsBucketName}/infra/nlb.yml'
       Parameters:
         EnvironmentName: !Ref EnvironmentName
         XcomEndpoint: !Ref XcomEndpoint
