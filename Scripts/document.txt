@@ -1,31 +1,62 @@
-Sure! Here’s a summary of the entire GitHub Actions workflow:
+This document provides detailed documentation for the newly designed GitHub CI/CD solution intended for creating AWS resources. The solution employs GitHub Actions to automate the deployment of AWS infrastructure using CloudFormation templates.
 
----
+Table of Contents
 
-### GitHub Actions Workflow Summary
+Overview
 
-The GitHub Actions workflow automates the process of managing AWS infrastructure changes through two main jobs: **Create-Changeset** and **Deploy-Changeset**.
+Initial Setup
 
-1. **Triggers**: The workflow is triggered by pushes to the specified branches (`npd`, `nft`, `prd`).
+Permissions
 
-2. **Permissions**: The workflow requires permissions for writing ID tokens and reading repository contents.
+Environment Variables
 
-3. **Create-Changeset Job**:
-   - **Environment Setup**: It checks out the repository and sets environment variables based on the branch name.
-   - **Assume Role**: Assumes the necessary AWS role to gain access to resources.
-   - **Create Changeset**: Executes a script (`create-changeset.sh`) to prepare a CloudFormation changeset for the specified environment, enabling a preview of the deployment without immediate execution.
+Directory Structure
 
-4. **Deploy-Changeset Job**:
-   - **Dependencies**: This job depends on the successful completion of the Create-Changeset job.
-   - **Changeset Approval**: Includes a step for approval before proceeding.
-   - **Resource Deployment**: Uses a script (`deploy.sh`) to deploy the changeset to AWS, creating or updating the necessary resources based on the CloudFormation templates.
+Scripts
 
-This workflow effectively manages infrastructure deployments by allowing for dry runs (changesets) and controlled deployments, ensuring a streamlined CI/CD process.
+Common Functions (common.sh)
 
---- 
+Create Changeset Script (create-changeset.sh)
 
+Deploy Script (deploy.sh)
 
+GitHub Actions Workflow
 
+Overview
+
+This solution automates the deployment of AWS resources using GitHub Actions to streamline the process of creating, updating, and managing CloudFormation stacks. The CI/CD pipeline is structured to support multiple environments (npd, nft, prd) and utilizes OIDC for secure role assumption.
+
+Initial Setup
+
+Permissions
+
+Two IAM roles are required for this solution:
+
+GithubCICD: This role is primarily responsible for executing the deployment of AWS resources defined in the CloudFormation templates. It allows the GitHub Actions workflow to create, update, and delete resources in the specified AWS accounts based on the defined parameters.
+
+GithubOIDC: This role establishes an OIDC (OpenID Connect) relationship between the GitHub repository and the AWS landing zone. This relationship enables GitHub to authenticate and authorize actions performed by the GitHub Actions runner.
+
+Environment Variables
+
+The following environment variables must be set for the workflow to function correctly:
+
+AWS_ACCOUNT_ID_NPD
+
+AWS_ACCOUNT_ID_NFT
+
+AWS_ACCOUNT_ID_PRD
+
+AWS_DEPLOY_ROLE_COMMON
+
+AWS_TRUST_ROLE_COMMON
+
+AWS_REGION_COMMON
+
+These variables map specific AWS accounts and roles to the environments defined in the workflow.
+
+Directory Structure
+
+The following directory structure is implemented:
 
 .github/
 └── workflows/
@@ -37,26 +68,18 @@ infrastructure/
 │   ├── npd/
 │   │   ├── efs.properties
 │   │   ├── s3.properties
-│   │   ├── asg.properties
-│   │   ├── alb.properties
 │   │   └── secrets.properties
 │   ├── nft/
 │   │   ├── efs.properties
 │   │   ├── s3.properties
-│   │   ├── asg.properties
-│   │   ├── alb.properties
 │   │   └── secrets.properties
 │   └── prd/
 │       ├── efs.properties
 │       ├── s3.properties
-│       ├── asg.properties
-│       ├── alb.properties
 │       └── secrets.properties
 └── templates/
     ├── efs.yml
     ├── s3.yml
-    ├── asg.yml
-    ├── alb.yml
     └── secrets.yml
 scripts/
 ├── common.sh
@@ -64,393 +87,90 @@ scripts/
 └── deploy.sh
 
 
-# GitHub CI/CD Solution for AWS Resource Deployment
-
-Sure! Here’s the summary formatted for Confluence:
-
----
-
-## Scripts
-
-### Common Functions (`common.sh`)
-
-The `common.sh` script serves as a foundational utility that defines common functions and environment variables used throughout the deployment process. Key components include:
-
-- **Environment Variables**: 
-  - Sets default AWS region (`AWS_REGION` and `AWS_DEFAULT_REGION`) to "ap-southeast-2".
-  - Defines the application name (`APPLICATION_NAME`) to prefix resource names in AWS.
-
-- **Template References**: 
-  - References CloudFormation template files for S3, EFS, and Secrets Manager, facilitating easy deployment calls.
-
-- **Common Functions**:
-  - **`create_update_change_set`**: Prepares a CloudFormation change set for resources without immediate execution, using parameters like stack name and template file.
-  - **`deploy`**: Executes the deployment of the CloudFormation stack using the provided parameters.
-
-### Create Changeset Script (`create-changeset.sh`)
-
-The `create-changeset.sh` script is responsible for creating a change set to preview AWS resource deployment. Key functionalities include:
-
-- **Argument Parsing**: 
-  - Accepts command-line arguments for specifying the target environment (npd, nft, prd) and optional debug logging.
-
-- **Change Set Creation Logic**:
-  - Based on the specified environment, the script creates change sets for each resource type (S3, EFS, Secrets Manager) using dedicated properties files for configuration.
-
-- **Error Handling**: 
-  - Validates the presence of the required environment name, exiting with an error message if not provided.
-
-### Deploy Script (`deploy.sh`)
-
-The `deploy.sh` script is tasked with deploying AWS resources defined in CloudFormation templates. Key features include:
-
-- **Argument Parsing**: 
-  - Similar to `create-changeset.sh`, it accepts command-line arguments for the target environment and debug mode.
-
-- **Resource Deployment Logic**:
-  - Calls deployment functions for each resource type based on the specified environment, creating or updating CloudFormation stacks as necessary.
-
-- **Error Handling**: 
-  - Checks for the required environment name and exits with an error message if not present.
-
-- **Completion Messages**: 
-  - Outputs success messages upon completing the deployment process, providing user feedback.
-
---- 
-
-You can directly paste this into Confluence, and it should maintain its formatting.
-
-
-Here’s a version with simple formatting that should copy and paste well into Confluence:
-
----
-
-## Scripts
-
-### Common Functions (`common.sh`)
-
-The `common.sh` script defines common functions and environment variables for the deployment process. Key components include:
-
-- **Environment Variables**: 
-  - Sets default AWS region (`AWS_REGION` and `AWS_DEFAULT_REGION`) to "ap-southeast-2".
-  - Defines the application name (`APPLICATION_NAME`) to prefix resource names.
-
-- **Template References**: 
-  - References CloudFormation templates for S3, EFS, and Secrets Manager for easy deployment calls.
-
-- **Common Functions**:
-  - **`create_update_change_set`**: Prepares a CloudFormation change set without immediate execution.
-  - **`deploy`**: Executes the deployment of the CloudFormation stack.
-
-### Create Changeset Script (`create-changeset.sh`)
-
-The `create-changeset.sh` script creates a change set to preview AWS resource deployment. Key functionalities include:
-
-- **Argument Parsing**: 
-  - Accepts command-line arguments for the target environment (npd, nft, prd) and optional debug logging.
-
-- **Change Set Creation Logic**:
-  - Creates change sets for each resource type (S3, EFS, Secrets Manager) based on the specified environment.
-
-- **Error Handling**: 
-  - Validates the presence of the required environment name.
-
-### Deploy Script (`deploy.sh`)
-
-The `deploy.sh` script deploys AWS resources defined in CloudFormation templates. Key features include:
-
-- **Argument Parsing**: 
-  - Accepts command-line arguments for the target environment and debug mode.
-
-- **Resource Deployment Logic**:
-  - Calls deployment functions for each resource type based on the specified environment.
-
-- **Error Handling**: 
-  - Checks for the required environment name.
-
-- **Completion Messages**: 
-  - Outputs success messages upon completion of the deployment process.
-
----
-
-This format should be easier to paste directly into Confluence while preserving readability.
-
-This document provides detailed documentation for the newly designed GitHub CI/CD solution intended for creating AWS resources. The solution employs GitHub Actions to automate the deployment of AWS infrastructure using CloudFormation templates.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Initial Setup](#initial-setup)
-   - [Permissions](#permissions)
-   - [Directory Structure](#directory-structure)
-3. [Scripts](#scripts)
-   - [Common Functions (`common.sh`)](#common-functions-commonsh)
-   - [Create Changeset Script (`create-changeset.sh`)](#create-changeset-script-create-changesetsh)
-   - [Deploy Script (`deploy.sh`)](#deploy-script-deploysh)
-4. [CloudFormation Templates](#cloudformation-templates)
-5. [GitHub Actions Workflow](#github-actions-workflow)
-6. [Environment Variables](#environment-variables)
-
----
-
-## Overview
-
-This solution automates the deployment of AWS resources using GitHub Actions to streamline the process of creating, updating, and managing CloudFormation stacks. The CI/CD pipeline is structured to support multiple environments (npd, nft, prd) and utilizes OIDC for secure role assumption.
-
-## Initial Setup
-
-### Permissions
-
-Two IAM roles are required for this solution:
-
-- **GithubCICD**: This role is primarily responsible for executing the deployment of AWS resources defined in the CloudFormation templates. It allows the GitHub Actions workflow to create, update, and delete resources in the specified AWS accounts based on the defined parameters.
-- **GithubOIDC**: This role establishes an OIDC (OpenID Connect) relationship between the GitHub repository and the AWS landing zone. This relationship enables GitHub to authenticate and authorize actions performed by the GitHub Actions runner.
-
-### Directory Structure
-
-The following directory structure is implemented:
-
-```
-infrastructure/
-├── parameters/
-│   ├── npd/
-│   │   ├── efs.properties
-│   │   ├── s3.properties
-│   │   ├── asg.properties
-│   │   ├── alb.properties
-│   │   └── secrets.properties
-│   ├── nft/
-│   │   ├── efs.properties
-│   │   ├── s3.properties
-│   │   ├── asg.properties
-│   │   ├── alb.properties
-│   │   └── secrets.properties
-│   └── prd/
-│       ├── efs.properties
-│       ├── s3.properties
-│       ├── asg.properties
-│       ├── alb.properties
-│       └── secrets.properties
-└── templates/
-    ├── efs.yml
-    ├── s3.yml
-    ├── asg.yml
-    ├── alb.yml
-    └── secrets.yml
-scripts/
-├── common.sh
-├── create-changeset.sh
-└── deploy.sh
-
-```
-
-## Scripts
+Scripts
 
 Common Functions (common.sh)
+
 The common.sh script serves as a foundational utility that defines common functions and environment variables used throughout the deployment process. Key components include:
 
-Environment Variables:
+Environment Variables: 
 
 Sets default AWS region (AWS_REGION and AWS_DEFAULT_REGION) to "ap-southeast-2".
+
 Defines the application name (APPLICATION_NAME) to prefix resource names in AWS.
-Template References:
+
+Template References: 
 
 References CloudFormation template files for S3, EFS, and Secrets Manager, facilitating easy deployment calls.
+
 Common Functions:
 
 create_update_change_set: Prepares a CloudFormation change set for resources without immediate execution, using parameters like stack name and template file.
+
 deploy: Executes the deployment of the CloudFormation stack using the provided parameters.
+
 Create Changeset Script (create-changeset.sh)
+
 The create-changeset.sh script is responsible for creating a change set to preview AWS resource deployment. Key functionalities include:
 
-Argument Parsing:
+Argument Parsing: 
 
 Accepts command-line arguments for specifying the target environment (npd, nft, prd) and optional debug logging.
+
 Change Set Creation Logic:
 
 Based on the specified environment, the script creates change sets for each resource type (S3, EFS, Secrets Manager) using dedicated properties files for configuration.
-Error Handling:
+
+Error Handling: 
 
 Validates the presence of the required environment name, exiting with an error message if not provided.
+
 Deploy Script (deploy.sh)
+
 The deploy.sh script is tasked with deploying AWS resources defined in CloudFormation templates. Key features include:
 
-Argument Parsing:
+Argument Parsing: 
 
 Similar to create-changeset.sh, it accepts command-line arguments for the target environment and debug mode.
+
 Resource Deployment Logic:
 
 Calls deployment functions for each resource type based on the specified environment, creating or updating CloudFormation stacks as necessary.
-Error Handling:
+
+Error Handling: 
 
 Checks for the required environment name and exits with an error message if not present.
-Completion Messages:
+
+Completion Messages: 
 
 Outputs success messages upon completing the deployment process, providing user feedback.
 
-### Common Functions (`common.sh`)
+GitHub Actions Workflow
 
-This script defines common functions for creating and deploying CloudFormation change sets. It sets default AWS region and application-related environment variables.
+There is a separate Confluence dedicated to the workflow. Please look here for the detailed implementation or keep reading for a quick summary. 
 
-```bash
-export AWS_REGION=${AWS_REGION:-"ap-southeast-2"}
-export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"ap-southeast-2"}
+The GitHub Actions workflow automates the process of managing AWS infrastructure changes through two main jobs: Create-Changeset and Deploy-Changeset.
 
-APPLICATION_NAME=ccsa-ga-test-aws-infra
-ENVIRONMENT_NAME=
-DEBUG=false
+Triggers: The workflow is triggered by pushes to the specified branches (npd, nft, prd).
 
-S3_TEMPLATE=infrastructure/templates/s3.yml
-EFS_TEMPLATE=infrastructure/templates/efs.yml
-SECRETS_TEMPLATE=infrastructure/templates/secrets.yml
+Permissions: The workflow requires permissions for writing ID tokens and reading repository contents.
 
-create_update_change_set () {
-    local STACK_NAME=$1
-    local STACK_TEMPLATE=$2
-    local STACK_PARAMETERS=$3
-    local CFN_ROLE_ARN=$4
+Create-Changeset Job:
 
-    aws cloudformation deploy \
-        --no-execute-changeset \
-        --no-fail-on-empty-changeset \
-        --stack-name $STACK_NAME \
-        --template-file $STACK_TEMPLATE \
-        --parameter-overrides $(cat $STACK_PARAMETERS)
-}
+Environment Setup: It checks out the repository and sets environment variables based on the branch name.
 
-deploy () {
-    local STACK_NAME=$1
-    local STACK_TEMPLATE=$2
-    local STACK_PARAMETERS=$3
-    local CFN_ROLE_ARN=$4
+Assume Role: Assumes the necessary AWS role to gain access to resources.
 
-    aws cloudformation deploy \
-        --no-fail-on-empty-changeset \
-        --stack-name $STACK_NAME \
-        --template-file $STACK_TEMPLATE \
-        --parameter-overrides $(cat $STACK_PARAMETERS)
-}       
-```
+Create Changeset: Executes a script (create-changeset.sh) to prepare a CloudFormation changeset for the specified environment, enabling a preview of the deployment without immediate execution.
 
-### Create Changeset Script (`create-changeset.sh`)
+Deploy-Changeset Job:
 
-This script is responsible for creating a CloudFormation change set to preview the changes before deployment.
+Dependencies: This job depends on the successful completion of the Create-Changeset job.
 
-```bash
-#!/bin/bash
-set -e
+Changeset Approval: Includes a step for approval before proceeding.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "${SCRIPT_DIR}/common.sh"
+Resource Deployment: Uses a script (deploy.sh) to deploy the changeset to AWS, creating or updating the necessary resources based on the CloudFormation templates.
 
-# Purpose: Dry-run deployment by creating a changeset
-# Arguments:
-#   --environment-name: Target environment (npd, nft, prd)
-#   --debug: Enable debug logging (optional)
-
-# Parsing command-line arguments...
-
-if [ -z "$ENVIRONMENT_NAME" ]; then
-    echo "Error: environment-name is required"
-    exit 1
-fi 
-
-create_changesets_for_npd() {
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
-}
-
-# Main Logic...
-```
-
-### Deploy Script (`deploy.sh`)
-
-This script deploys the resources defined in the CloudFormation templates.
-
-```bash
-#!/bin/bash
-set -e
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "${SCRIPT_DIR}/common.sh"
-
-# Purpose: Deploy infrastructure resources
-# Arguments: Same as create-changeset.sh
-
-# Parsing command-line arguments...
-
-if [ -z "$ENVIRONMENT_NAME" ]; then
-    echo "Error: environment-name is required"
-    exit 1
-fi 
-
-deploy_resources_for_npd() {
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
-}
-
-# Main Logic...
-```
-
-## CloudFormation Templates
-
-The CloudFormation templates (`s3.yml`, `efs.yml`) define the AWS resources and their configurations. They should be stored in the `infrastructure/templates/` directory.
-
-## GitHub Actions Workflow
-
-The following GitHub Actions workflow automates the process of creating changesets and deploying changes:
-
-```yaml
-name: Deploy Infrastructure
-on:
-  push:
-    branches:
-      - npd
-      - nft
-      - prd
-
-jobs:
-  Create-Changeset:
-    runs-on: default
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      - name: Set Environment Variables
-        id: set-env
-        run: |
-          # Set environment variables based on branch...
-
-      - name: Create Changeset
-        run: |
-          chmod +x scripts/create-changeset.sh
-          scripts/create-changeset.sh --environment-name ${{ steps.set-env.outputs.BRANCH_NAME }} --debug true
-
-  Deploy-Changeset:
-    needs: Create-Changeset
-    runs-on: default
-    steps:
-      - name: Deploy Infra
-        run: |
-          chmod +x scripts/deploy.sh
-          scripts/deploy.sh --environment-name ${{ needs.Create-Changeset.outputs.BRANCH_NAME }} --debug true
-```
-
-## Environment Variables
-
-The following environment variables must be set for the workflow to function correctly:
-
-- `AWS_ACCOUNT_ID_NPD`
-- `AWS_ACCOUNT_ID_NFT`
-- `AWS_ACCOUNT_ID_PRD`
-- `AWS_DEPLOY_ROLE_COMMON`
-- `AWS_TRUST_ROLE_COMMON`
-- `AWS_REGION_COMMON`
-
-These variables map specific AWS accounts and roles to the environments defined in the workflow.
-
----
+This workflow effectively manages infrastructure deployments by allowing for dry runs (changesets) and controlled deployments, ensuring a streamlined CI/CD process. Ref workflow
 
 This document serves as a comprehensive guide for implementing and utilizing the GitHub CI/CD solution for AWS resource deployment. Ensure that all necessary IAM roles, permissions, and environment variables are correctly configured before running the workflow.
