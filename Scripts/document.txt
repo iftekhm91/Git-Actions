@@ -28,8 +28,8 @@ This solution automates the deployment of AWS resources using GitHub Actions to 
 
 Two IAM roles are required for this solution:
 
-- **GithubCICD**: This role is responsible for deploying the actual AWS resources.
-- **GithubOIDC**: This role establishes an OIDC relationship between the GitHub repository and the AWS landing zone.
+- **GithubCICD**: This role is primarily responsible for executing the deployment of AWS resources defined in the CloudFormation templates. It allows the GitHub Actions workflow to create, update, and delete resources in the specified AWS accounts based on the defined parameters.
+- **GithubOIDC**: This role establishes an OIDC (OpenID Connect) relationship between the GitHub repository and the AWS landing zone. This relationship enables GitHub to authenticate and authorize actions performed by the GitHub Actions runner.
 
 ### Directory Structure
 
@@ -39,18 +39,34 @@ The following directory structure is implemented:
 infrastructure/
 ├── parameters/
 │   ├── npd/
-│   │   └── efs.properties
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   ├── asg.properties
+│   │   ├── alb.properties
+│   │   └── secrets.properties
 │   ├── nft/
-│   │   └── efs.properties
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   ├── asg.properties
+│   │   ├── alb.properties
+│   │   └── secrets.properties
 │   └── prd/
-│       └── efs.properties
+│       ├── efs.properties
+│       ├── s3.properties
+│       ├── asg.properties
+│       ├── alb.properties
+│       └── secrets.properties
 └── templates/
     ├── efs.yml
-    └── s3.yml
+    ├── s3.yml
+    ├── asg.yml
+    ├── alb.yml
+    └── secrets.yml
 scripts/
 ├── common.sh
 ├── create-changeset.sh
 └── deploy.sh
+
 ```
 
 ## Scripts
