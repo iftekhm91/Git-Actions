@@ -1,3 +1,32 @@
+Sure! Here’s a summary of the entire GitHub Actions workflow:
+
+---
+
+### GitHub Actions Workflow Summary
+
+The GitHub Actions workflow automates the process of managing AWS infrastructure changes through two main jobs: **Create-Changeset** and **Deploy-Changeset**.
+
+1. **Triggers**: The workflow is triggered by pushes to the specified branches (`npd`, `nft`, `prd`).
+
+2. **Permissions**: The workflow requires permissions for writing ID tokens and reading repository contents.
+
+3. **Create-Changeset Job**:
+   - **Environment Setup**: It checks out the repository and sets environment variables based on the branch name.
+   - **Assume Role**: Assumes the necessary AWS role to gain access to resources.
+   - **Create Changeset**: Executes a script (`create-changeset.sh`) to prepare a CloudFormation changeset for the specified environment, enabling a preview of the deployment without immediate execution.
+
+4. **Deploy-Changeset Job**:
+   - **Dependencies**: This job depends on the successful completion of the Create-Changeset job.
+   - **Changeset Approval**: Includes a step for approval before proceeding.
+   - **Resource Deployment**: Uses a script (`deploy.sh`) to deploy the changeset to AWS, creating or updating the necessary resources based on the CloudFormation templates.
+
+This workflow effectively manages infrastructure deployments by allowing for dry runs (changesets) and controlled deployments, ensuring a streamlined CI/CD process.
+
+--- 
+
+
+
+
 .github/
 └── workflows/
     ├── infra-deployment.yml
@@ -33,7 +62,6 @@ scripts/
 ├── common.sh
 ├── create-changeset.sh
 └── deploy.sh
-
 
 
 # GitHub CI/CD Solution for AWS Resource Deployment
