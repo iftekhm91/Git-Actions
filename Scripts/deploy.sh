@@ -6,20 +6,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Purpose:
 # ----------
-# This script deploys the infrastructure resources for DCTM.
+# This script deploys the infrastructure resources for Testing.
 
 # Arguments:
 # ----------
 #   Argument                | Description
 #   environment-name        | Target environment where AWS resources will be created. 
-#                           | Possible values: npd-dev, npd-st, ppd-customer, ppd-internal, prd-customer, prd-internal
+#                           | Possible values: npd, nft, prd
 #   debug                   | Optional. true if you want to enable debug logging, false by default
 
 # Example Usage:
 # ----------
-# deploy.sh --environment-name npd-dev --debug true
+# deploy.sh --environment-name npd --debug true
 
-echo "[START] Deploying stacks started at $(date +"%d-%m-%Y %H:%M")"
+ENVIRONMENT_NAME=
+DEBUG=false
 
 while [ -n "$1" ]
 do
@@ -37,12 +38,39 @@ do
     shift
 done
 
-# S3 Deployment for doco
-if [[ "$ENVIRONMENT_NAME" = npd-* ]]; then
-    # NPD [ DEV - ST ] - INTERNAL
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-s3" "$S3_TEMPLATE" "Infrastructure/Parameters/${ENVIRONMENT_NAME}/s3-internal.properties" 
-    # NPD [ DEV - ST ] - CUSTOMER
-    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "Infrastructure/Parameters/${ENVIRONMENT_NAME}/s3-customer.properties" 
-else
+if [ -z "$ENVIRONMENT_NAME" ]; then
+    echo "Error: environment-name is required"
+    exit 1
+fi 
+
+deploy_resources_for_npd() {
     deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
-fi;
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
+}
+
+deploy_resources_for_nft() {
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
+    deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
+}
+
+deploy_resources_for_prd() {
+    echo "No resource deployments defined: $ENVIRONMENT_NAME"
+}
+
+# Main Logic
+
+case "$ENVIRONMENT_NAME" in
+    npd)
+        deploy_resources_for_npd ;;
+    nft)
+        deploy_resources_for_nft ;;
+    prd)
+        deploy_resources_for_prd ;;
+    *)
+        echo "Unsupported environment: $ENVIRONMENT_NAME"
+        exit 1 ;;
+esac
+
+echo "[END] Deployment ran successfully."
