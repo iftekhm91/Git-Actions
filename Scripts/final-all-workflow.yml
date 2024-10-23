@@ -1,16 +1,12 @@
 name: Deploy Infrastructure
-run-name: ${{ github.workflow }} triggered by ${{ github.actor }}
+run-name: ${{ github.workflow }} on ${{ github.ref_name }} triggered by ${{ github.actor }}
 
 on:
   push:
     branches:
-      - npd-dev
-      - npd-st
-      - npd-sit
-      - nft-internal
-      - nft-customer
-      - prd-internal
-      - prd-customer
+      - npd
+      - nft
+      - prd
 
 permissions:
   id-token: write
@@ -35,44 +31,20 @@ jobs:
         run: |
           # Create a JSON object mapping branch names to environment variables
           ENV_VARS='{
-            "npd-dev": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_DEV }}",
+            "npd": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD }}",
               "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
               "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
               "REGION": "${{ vars.AWS_REGION_COMMON }}"
             },
-            "npd-st": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_ST }}",
+            "nft": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT }}",
               "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
               "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
               "REGION": "${{ vars.AWS_REGION_COMMON }}"
-            },
-            "npd-sit": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NPD_SIT }}",
-              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
-              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
-              "REGION": "${{ vars.AWS_REGION_COMMON }}"
-            },
-            "nft-internal": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_INTERNAL }}",
-              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
-              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
-              "REGION": "${{ vars.AWS_REGION_COMMON }}"
-            },
-            "nft-customer": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_NFT_CUSTOMER }}",
-              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
-              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
-              "REGION": "${{ vars.AWS_REGION_COMMON }}"
-            },
-            "prd-internal": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_INTERNAL }}",
-              "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
-              "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON }}",
-              "REGION": "${{ vars.AWS_REGION_COMMON }}"
-            },
-            "prd-customer": {
-              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD_CUSTOMER }}",
+            },           
+            "prd": {
+              "ACCOUNT_ID": "${{ vars.AWS_ACCOUNT_ID_PRD }}",
               "DEPLOY_ROLE": "${{ vars.AWS_DEPLOY_ROLE_COMMON }}",
               "TRUST_ROLE": "${{ vars.AWS_TRUST_ROLE_COMMON}}",
               "REGION": "${{ vars.AWS_REGION_COMMON }}"
