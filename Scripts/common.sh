@@ -1,13 +1,14 @@
 export AWS_REGION=${AWS_REGION:-"ap-southeast-2"}
 export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"ap-southeast-2"}
 
-APPLICATION_NAME=ccsa-doco-aws-infra
+APPLICATION_NAME=ccsa-ga-test-aws-infra
 ENVIRONMENT_NAME=
 DEBUG=false
 
 
-S3_TEMPLATE=Infrastructure/Templates/S3/s3.yml
-EFS_TEMPLATE=infrastructure/templates/EFS/efs.yml
+S3_TEMPLATE=infrastructure/templates/s3.yml
+EFS_TEMPLATE=infrastructure/templates/efs.yml
+SECRETS_TEMPLATE=infrastructure/templates/secrets.yml
 
 # TODO merge below two functions later
 create_update_change_set () {
