@@ -12,12 +12,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ----------
 #   Argument                | Description
 #   environment-name        | Target environment where AWS resources will be created. 
-#                           | Possible values: npd-dev, npd-st, ppd-customer, ppd-internal, prd-customer, prd-internal
+#                           | Possible values: npd, nft, prd
 #   debug                   | Optional. true if you want to enable debug logging, false by default
 
 # Example Usage:
 # ----------
-# create-changeset.sh --environment-name npd-dev --debug true
+# create-changeset.sh --environment-name npd --debug true
 
 echo "[START] Creating changesets started at $(date +"%d-%m-%Y %H:%M")"
 
@@ -40,41 +40,39 @@ do
     shift
 done
 
-# Define environments where Dctm-Wm S3 and EFS stacks should be included
-WM_S3_DEPLOY_ENVIRONMENTS=("npd-dev" "npd-st" "ppd-customer")
-WM_EFS_DEPLOY_ENVIRONMENTS=("npd-dev" "npd-st" "ppd-customer")
+if [ -z "$ENVIRONMENT_NAME" ]; then
+    echo "Error: environment-name is required"
+    exit 1
+fi 
 
-# S3 CHANGESET CREATION for Dctm-Wm
-if [[ " ${WM_S3_DEPLOY_ENVIRONMENTS[@]} " =~ " ${ENVIRONMENT_NAME} " ]]; then
-    # Create changeset for S3 Dctm-Wm
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-wm-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-wm.properties" "$CFN_ROLE_ARN"
-fi
+create_changesets_for_npd() {
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
+}
 
-# S3 CHANGESET CREATION for Dctm
-if [[ "$ENVIRONMENT_NAME" = npd-* ]]; then
-    # NPD [ DEV - ST ] - INTERNAL
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-internal.properties" "$CFN_ROLE_ARN"
-    # NPD [ DEV - ST ] - CUSTOMER
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3-customer.properties" "$CFN_ROLE_ARN"
-else
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" "$CFN_ROLE_ARN"
-fi;
+create_changesets_for_nft() {
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-s3" "$S3_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/s3.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" 
+    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-secrets" "$SECRETS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/secrets.properties"
+}
 
-# EFS CHANGESET CREATION for Dctm-Wm
-if [[ " ${WM_EFS_DEPLOY_ENVIRONMENTS[@]} " =~ " ${ENVIRONMENT_NAME} " ]]; then
-    # Create changeset for EFS Dctm-Wm
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-wm-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs-wm.properties" "$CFN_ROLE_ARN"
-fi
+create_changesets_for_prd() {
+    echo "No resource deployments defined: $ENVIRONMENT_NAME"
+}
 
-# EFS CHANGESET CREATION for Dctm
-if [[ "$ENVIRONMENT_NAME" = npd-* ]]; then
-    create_update_change_set "${APPLICATION_NAME}-npd-efs" "$EFS_TEMPLATE" "infrastructure/parameters/npd/efs.properties" "$CFN_ROLE_ARN"
-else
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs.properties" "$CFN_ROLE_ARN"
-fi;
+# Main Logic
 
-# EFS CHANGESET CREATION for Dctm in ST
-if [[ "$ENVIRONMENT_NAME" = npd-st ]]; then
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-customer-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs-customer.properties" "$CFN_ROLE_ARN"
-    create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-internal-efs" "$EFS_TEMPLATE" "infrastructure/parameters/${ENVIRONMENT_NAME}/efs-internal.properties" "$CFN_ROLE_ARN"
-fi;
+case "$ENVIRONMENT_NAME" in
+    npd)
+        create_changesets_for_npd ;;
+    nft)
+        create_changesets_for_nft ;;
+    prd)
+        create_changesets_for_prd ;;
+    *)
+        echo "Unsupported environment: $ENVIRONMENT_NAME"
+        exit 1 ;;
+esac
+
+echo "[END] Changesets ran successfully."
