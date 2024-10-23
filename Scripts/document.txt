@@ -1,3 +1,41 @@
+.github/
+└── workflows/
+    ├── infra-deployment.yml
+    ├── snyk-scan.yml
+    └── wiz-action.yml
+infrastructure/
+├── parameters/
+│   ├── npd/
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   ├── asg.properties
+│   │   ├── alb.properties
+│   │   └── secrets.properties
+│   ├── nft/
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   ├── asg.properties
+│   │   ├── alb.properties
+│   │   └── secrets.properties
+│   └── prd/
+│       ├── efs.properties
+│       ├── s3.properties
+│       ├── asg.properties
+│       ├── alb.properties
+│       └── secrets.properties
+└── templates/
+    ├── efs.yml
+    ├── s3.yml
+    ├── asg.yml
+    ├── alb.yml
+    └── secrets.yml
+scripts/
+├── common.sh
+├── create-changeset.sh
+└── deploy.sh
+
+
+
 # GitHub CI/CD Solution for AWS Resource Deployment
 
 Sure! Here’s the summary formatted for Confluence:
