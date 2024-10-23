@@ -1,5 +1,114 @@
 # GitHub CI/CD Solution for AWS Resource Deployment
 
+Sure! Here’s the summary formatted for Confluence:
+
+---
+
+## Scripts
+
+### Common Functions (`common.sh`)
+
+The `common.sh` script serves as a foundational utility that defines common functions and environment variables used throughout the deployment process. Key components include:
+
+- **Environment Variables**: 
+  - Sets default AWS region (`AWS_REGION` and `AWS_DEFAULT_REGION`) to "ap-southeast-2".
+  - Defines the application name (`APPLICATION_NAME`) to prefix resource names in AWS.
+
+- **Template References**: 
+  - References CloudFormation template files for S3, EFS, and Secrets Manager, facilitating easy deployment calls.
+
+- **Common Functions**:
+  - **`create_update_change_set`**: Prepares a CloudFormation change set for resources without immediate execution, using parameters like stack name and template file.
+  - **`deploy`**: Executes the deployment of the CloudFormation stack using the provided parameters.
+
+### Create Changeset Script (`create-changeset.sh`)
+
+The `create-changeset.sh` script is responsible for creating a change set to preview AWS resource deployment. Key functionalities include:
+
+- **Argument Parsing**: 
+  - Accepts command-line arguments for specifying the target environment (npd, nft, prd) and optional debug logging.
+
+- **Change Set Creation Logic**:
+  - Based on the specified environment, the script creates change sets for each resource type (S3, EFS, Secrets Manager) using dedicated properties files for configuration.
+
+- **Error Handling**: 
+  - Validates the presence of the required environment name, exiting with an error message if not provided.
+
+### Deploy Script (`deploy.sh`)
+
+The `deploy.sh` script is tasked with deploying AWS resources defined in CloudFormation templates. Key features include:
+
+- **Argument Parsing**: 
+  - Similar to `create-changeset.sh`, it accepts command-line arguments for the target environment and debug mode.
+
+- **Resource Deployment Logic**:
+  - Calls deployment functions for each resource type based on the specified environment, creating or updating CloudFormation stacks as necessary.
+
+- **Error Handling**: 
+  - Checks for the required environment name and exits with an error message if not present.
+
+- **Completion Messages**: 
+  - Outputs success messages upon completing the deployment process, providing user feedback.
+
+--- 
+
+You can directly paste this into Confluence, and it should maintain its formatting.
+
+
+Here’s a version with simple formatting that should copy and paste well into Confluence:
+
+---
+
+## Scripts
+
+### Common Functions (`common.sh`)
+
+The `common.sh` script defines common functions and environment variables for the deployment process. Key components include:
+
+- **Environment Variables**: 
+  - Sets default AWS region (`AWS_REGION` and `AWS_DEFAULT_REGION`) to "ap-southeast-2".
+  - Defines the application name (`APPLICATION_NAME`) to prefix resource names.
+
+- **Template References**: 
+  - References CloudFormation templates for S3, EFS, and Secrets Manager for easy deployment calls.
+
+- **Common Functions**:
+  - **`create_update_change_set`**: Prepares a CloudFormation change set without immediate execution.
+  - **`deploy`**: Executes the deployment of the CloudFormation stack.
+
+### Create Changeset Script (`create-changeset.sh`)
+
+The `create-changeset.sh` script creates a change set to preview AWS resource deployment. Key functionalities include:
+
+- **Argument Parsing**: 
+  - Accepts command-line arguments for the target environment (npd, nft, prd) and optional debug logging.
+
+- **Change Set Creation Logic**:
+  - Creates change sets for each resource type (S3, EFS, Secrets Manager) based on the specified environment.
+
+- **Error Handling**: 
+  - Validates the presence of the required environment name.
+
+### Deploy Script (`deploy.sh`)
+
+The `deploy.sh` script deploys AWS resources defined in CloudFormation templates. Key features include:
+
+- **Argument Parsing**: 
+  - Accepts command-line arguments for the target environment and debug mode.
+
+- **Resource Deployment Logic**:
+  - Calls deployment functions for each resource type based on the specified environment.
+
+- **Error Handling**: 
+  - Checks for the required environment name.
+
+- **Completion Messages**: 
+  - Outputs success messages upon completion of the deployment process.
+
+---
+
+This format should be easier to paste directly into Confluence while preserving readability.
+
 This document provides detailed documentation for the newly designed GitHub CI/CD solution intended for creating AWS resources. The solution employs GitHub Actions to automate the deployment of AWS infrastructure using CloudFormation templates.
 
 ## Table of Contents
