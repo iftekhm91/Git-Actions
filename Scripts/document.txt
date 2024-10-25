@@ -1,27 +1,21 @@
-.github/
-└── workflows/
-    ├── infra-deployment.yml
-    ├── snyk-scan.yml
-    └── wiz-action.yml
-infrastructure/
-├── parameters/
-│   ├── npd/
-│   │   ├── efs.properties
-│   │   ├── s3.properties
-│   │   └── secrets.properties
-│   ├── nft/
-│   │   ├── efs.properties
-│   │   ├── s3.properties
-│   │   └── secrets.properties
-│   └── prd/
-│       ├── efs.properties
-│       ├── s3.properties
-│       └── secrets.properties
-└── templates/
-    ├── efs.yml
-    ├── s3.yml
-    └── secrets.yml
-scripts/
-├── common.sh
-├── create-changeset.sh
-└── deploy.sh
+Got it! Here’s the revised summary without the forward slash:
+
+### Directory Structure Summary
+
+This directory structure organizes the components of the GitHub CI/CD solution for AWS resource deployment:
+
+- **.github/workflows**: Contains YAML files that define automated workflows. 
+  - `infra-deployment.yml`: Manages infrastructure deployment.
+  - `snyk-scan.yml`: Implements security scanning using Snyk.
+  - `wiz-action.yml`: Handles actions related to Wiz for cloud security.
+
+- **infrastructure**: Holds all infrastructure-related files.
+  - **parameters**: Contains environment-specific parameter files for different environments (npd, nft, prd), each with `efs.properties`, `s3.properties`, and `secrets.properties`.
+  - **templates**: Stores CloudFormation templates, including `efs.yml`, `s3.yml`, and `secrets.yml`.
+
+- **scripts**: Contains reusable shell scripts for automation.
+  - `common.sh`: Holds common functions for creating and deploying changesets.
+  - `create-changeset.sh`: Script to generate changesets for deployments.
+  - `deploy.sh`: Script to execute the deployment of the changeset.
+
+This structure promotes organization and clarity, facilitating efficient management of AWS resources across multiple environments.
