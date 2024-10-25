@@ -1,67 +1,27 @@
-Here's a detailed section on the benefits of your GitHub CI/CD solution for creating AWS resources:
-
----
-
-### Key Advantages 
-
-#### 1. Streamlining the Entire Deployment Process
-By automating the deployment of AWS resources through GitHub Actions, this solution significantly reduces the time and effort required for infrastructure management. The integration of well-defined workflows ensures that deployments are consistent and repeatable, minimizing human error and enhancing reliability. The automation of tasks like creating changesets and deploying resources not only speeds up the deployment cycle but also allows team members to focus on development rather than manual deployment processes.
-
-#### 2. Unified Workflow for Resource Management Across Environments
-This solution provides a single, cohesive workflow for managing resource deployments across various environments—namely npd, nft, and prd. By centralizing the management of AWS resources, teams can ensure that all environments adhere to the same deployment standards and practices. This uniformity helps in reducing discrepancies and simplifies the onboarding process for new team members, who can follow the same workflow regardless of the environment.
-
-#### 3. Organized Resource and Parameter Management
-The structured directory layout allows for the effective organization of resource-specific parameters under separate folders for each environment. This separation enhances clarity and maintainability, making it easier for teams to locate and modify parameters relevant to specific deployments. The logical organization of resources also supports better collaboration among team members, as they can work on different parts of the infrastructure without confusion.
-
-#### 4. Compatibility with Existing CodePipeline/CodeBuild Solutions
-This solution is designed to be compatible with existing AWS CodePipeline and CodeBuild setups, facilitating a smooth migration to GitHub Actions. Teams can leverage their current infrastructure and workflows while gradually transitioning to this new CI/CD solution. This compatibility not only protects existing investments in AWS services but also allows teams to benefit from the enhanced features of GitHub Actions without a complete overhaul of their processes.
-
-#### 5. Enhanced Visibility and Auditability
-By using GitHub Actions for deployment, teams gain better visibility into the deployment process through the GitHub interface. Each change is tracked in version control, providing an audit trail that enhances accountability and traceability. This transparency is crucial for compliance purposes and allows teams to quickly identify and rectify any issues that may arise during deployment.
-
-#### 6. Scalability and Flexibility
-The solution's architecture is designed to scale with the organization's needs. As new resources or environments are added, the existing structure can easily accommodate these changes without requiring significant modifications. This flexibility ensures that teams can adapt their infrastructure to meet evolving business requirements.
-
-#### 7. Improved Collaboration and Team Efficiency
-With a centralized CI/CD pipeline in GitHub, team members can collaborate more effectively on infrastructure changes. The use of pull requests for changesets encourages code reviews and discussions, fostering a culture of collaboration and continuous improvement. This not only enhances the quality of the deployments but also builds a stronger, more cohesive team.
-
-#### 8. Integration with Other GitHub Tools
-Leveraging GitHub Actions allows for seamless integration with other GitHub features and tools, such as issue tracking, project management, and team communications. This holistic approach creates a more efficient workflow and enhances team productivity by keeping everything within a single platform.
-
-
-Here’s an expanded section focusing on the workflow benefits of your GitHub CI/CD solution, highlighting the process of running a changeset followed by a manual review before deployment:
-
----
-
-### Workflow Benefits of the GitHub CI/CD Solution
-
-#### 1. Structured Changeset Creation
-The workflow begins with the **Create-Changeset** job, which automates the process of generating a changeset for the specified environment. This structured approach ensures that all modifications are clearly defined before any changes are applied, providing a clear overview of what will be altered in the AWS infrastructure.
-
-#### 2. Manual Review Process
-Following the creation of the changeset, a crucial step in the workflow involves a manual review of the changeset. This review step ensures that stakeholders can inspect the proposed changes before they are deployed, fostering accountability and promoting a culture of collaboration. The explicit approval step minimizes the risk of unintended changes being introduced to production environments, thereby enhancing overall system stability.
-
-#### 3. Environment-Specific Configuration
-The workflow dynamically sets environment-specific variables based on the branch being deployed. This adaptability means that different configurations (e.g., account IDs, roles, regions) are automatically applied, ensuring that the deployment aligns with the intended environment (npd, nft, prd). This reduces the chances of human error during configuration and helps maintain a consistent setup across environments.
-
-#### 4. Clear Visibility and Logging
-Each step in the workflow includes logging statements that provide clear visibility into the deployment process. For instance, the output from the environment setup and changeset creation is logged, allowing team members to track the flow of information and understand the context of the deployment. This transparency is invaluable for troubleshooting and auditing purposes.
-
-#### 5. Enhanced Security with Role Assumption
-The use of AWS role assumption within the workflow adds a layer of security. By assuming roles specific to the environment being deployed, the workflow ensures that the necessary permissions are applied only when needed. This practice minimizes the exposure of sensitive credentials and reduces the attack surface, contributing to a more secure deployment process.
-
-#### 6. Efficient Deployment of Changes
-The subsequent **Deploy-Changeset** job is triggered only after the changeset has been created and approved, ensuring a controlled deployment process. This sequential approach allows teams to verify the changes before they are enacted, preventing potential disruptions in production. The deployment step also logs the deployment actions, maintaining an auditable trail of what was deployed and when.
-
-#### 7. Integration of Debugging Capabilities
-The inclusion of debugging options within the scripts allows for easier identification of issues during the deployment process. The workflow can run in debug mode, providing additional output that can help developers troubleshoot problems quickly, making it easier to maintain the CI/CD pipeline and enhancing overall reliability.
-
-#### 8. Separation of Concerns
-By separating the creation of changesets and the deployment into distinct jobs, the workflow adheres to the principle of separation of concerns. Each job is responsible for a specific part of the deployment process, which not only improves readability but also facilitates easier maintenance and modification of the workflow. Teams can make changes to one part of the workflow without impacting the other, allowing for more agile responses to evolving requirements.
-
----
-
-Feel free to adjust any points or expand on specific areas as needed!
----
-
-Feel free to modify or expand on any of these points to better align with your specific solution!
+.github/
+└── workflows/
+    ├── infra-deployment.yml
+    ├── snyk-scan.yml
+    └── wiz-action.yml
+infrastructure/
+├── parameters/
+│   ├── npd/
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   └── secrets.properties
+│   ├── nft/
+│   │   ├── efs.properties
+│   │   ├── s3.properties
+│   │   └── secrets.properties
+│   └── prd/
+│       ├── efs.properties
+│       ├── s3.properties
+│       └── secrets.properties
+└── templates/
+    ├── efs.yml
+    ├── s3.yml
+    └── secrets.yml
+scripts/
+├── common.sh
+├── create-changeset.sh
+└── deploy.sh
