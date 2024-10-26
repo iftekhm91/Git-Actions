@@ -45,7 +45,7 @@ jobs:
           aws-region: "ap-southeast-2"
       - name: whoami
         run: aws sts get-caller-identity
-      - name: Create Changeset
+      - name: Deploy Changeset
         run: |
           chmod +x Scripts/manage-infrastructure.sh
           echo "Deploying the changeset"
