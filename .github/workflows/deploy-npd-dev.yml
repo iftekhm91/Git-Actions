@@ -3,11 +3,7 @@ name: Deploy npd-dev
 on:
   push:
     branches:
-        - develop
-      # - nft-internal
-      # - nft-customer
-      # - prd-internal
-      # - prd-customer
+      - develop
 
 jobs:
   Create-Changeset:
@@ -16,7 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up AWS CLI for develop
-        if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -28,7 +23,7 @@ jobs:
         run: |
           chmod +x Scripts/manage-infrastructure.sh
           echo "Creation of changeset"
-          Scripts/manage-infrastructure.sh --environment-name npd-dev --action create-changeset --debug true
+          Scripts/manage-infrastructure.sh --environment-name "npd-dev" --action "create-changeset" --debug true
   
   Deploy-Changeset:
     needs: Create-Changeset
@@ -37,7 +32,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up AWS CLI for develop
-        if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -49,4 +43,4 @@ jobs:
         run: |
           chmod +x Scripts/manage-infrastructure.sh
           echo "Deploying the changeset"
-          Scripts/manage-infrastructure.sh --environment-name npd-dev --action deploy --debug true
+          Scripts/manage-infrastructure.sh --environment-name "npd-dev" --action "deploy" --debug true 
