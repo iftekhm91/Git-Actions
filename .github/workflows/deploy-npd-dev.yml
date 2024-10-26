@@ -26,9 +26,9 @@ jobs:
         run: aws sts get-caller-identity
       - name: Create Changeset
         run: |
-          chmod +x Scripts/create-changeset.sh
+          chmod +x Scripts/manage-infrastructure.sh
           echo "Creation of changeset"
-          Scripts/create-changeset.sh --environment-name npd-dev --debug true
+          Scripts/manage-infrastructure.sh --environment-name npd-dev --action create-changeset --debug true
 
   Manual_approval:
     needs: Create-Changeset
@@ -54,6 +54,6 @@ jobs:
         run: aws sts get-caller-identity
       - name: Create Changeset
         run: |
-          chmod +x Scripts/deploy.sh
+          chmod +x Scripts/manage-infrastructure.sh
           echo "Deploying the changeset"
-          Scripts/deploy.sh --environment-name npd-dev --debug true
+          Scripts/manage-infrastructure.sh --environment-name npd-dev --action deploy --debug true
