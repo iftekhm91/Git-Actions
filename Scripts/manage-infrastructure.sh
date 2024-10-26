@@ -106,7 +106,7 @@ handle_resources() {
             base_name=$(basename "$param_file" .properties)
             resource_type=$(echo "$base_name" | cut -d '-' -f 1)
             unique_identifier=$(echo "$base_name" | cut -d '-' -f 2-)
-            
+
             # Determine the corresponding template file
             template_file="Infrastructure/Templates/${resource_type}.yml"
             if [ ! -f "$template_file" ]; then
@@ -115,7 +115,7 @@ handle_resources() {
             fi
 
             # Create the stack name
-            stack_name="${resource_type}-${unique_identifier}"
+            stack_name="${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${resource_type}-${unique_identifier}"
             
             if [ "$ACTION" == "create-changeset" ]; then
                 echo "Creating changeset for stack: $stack_name using $param_file"
