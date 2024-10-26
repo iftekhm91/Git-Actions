@@ -12,45 +12,6 @@ set -e
 #   --action                | Action to perform: create-changeset or deploy
 #   --debug                 | Optional. true if you want to enable debug logging, false by default
 
-echo "[START] Infrastructure management started at $(date +"%d-%m-%Y %H:%M")"
-
-APPLICATION_NAME=ccsa-ga-test-aws-infra
-ENVIRONMENT_NAME=
-ACTION=
-DEBUG=false
-
-while [ -n "$1" ]
-do
-    case "$1" in
-        --environment-name)
-            ENVIRONMENT_NAME=$2
-            shift ;;
-        --action)
-            ACTION=$2
-            shift ;;
-        --debug)
-            DEBUG=$2
-            shift ;;
-        *)
-            echo "$1 is not a valid option"
-            exit 1 ;;
-    esac
-    shift
-done
-#!/bin/bash
-set -e
-
-# Purpose:
-# ----------
-# This script manages infrastructure by creating changesets or deploying resources.
-
-# Arguments:
-# ----------
-#   --environment-name      | Target environment where AWS resources will be managed.
-#                           | Possible values: npd, nft, prd
-#   --action                | Action to perform: create-changeset or deploy
-#   --debug                 | Optional. true if you want to enable debug logging, false by default
-
 echo "=============================="
 echo "[START] Infrastructure management started at $(date +"%d-%m-%Y %H:%M")"
 echo "=============================="
