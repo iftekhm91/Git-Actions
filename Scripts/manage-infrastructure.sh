@@ -80,44 +80,53 @@ create_changesets() {
     local template_file="Infrastructure/Templates/s3.yml"
     local parameters_dir="Infrastructure/Parameters/${ENVIRONMENT_NAME}"
 
+    echo "Checking parameters directory: $parameters_dir"
+
     if [ ! -d "$parameters_dir" ]; then
         echo "Error: Parameters directory for environment $ENVIRONMENT_NAME does not exist."
         exit 1
     fi
+
+    echo "Looking for .properties files in $parameters_dir"
+    ls "$parameters_dir"/*.properties 2>/dev/null || echo "No .properties files found in $parameters_dir"
 
     # Loop through all parameter files in the parameters directory
     for param_file in "$parameters_dir"/*.properties; do
         if [ -f "$param_file" ]; then
             # Extract stack name from the parameter file name
             stack_name=$(basename "${param_file%.properties}")
+            echo "Creating changeset for stack: ${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name} using $param_file"
             create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name}" "$template_file" "$param_file"
-        else
-            echo "Warning: No .properties files found in $parameters_dir"
         fi
     done
 }
 
 # Function to deploy resources dynamically
 deploy_resources() {
-    local template_file="infrastructure/templates/s3.yml"
-    local parameters_dir="infrastructure/parameters/${ENVIRONMENT_NAME}"
+    local template_file="Infrastructure/Templates/s3.yml"
+    local parameters_dir="Infrastructure/Parameters/${ENVIRONMENT_NAME}"
+
+    echo "Checking parameters directory: $parameters_dir"
 
     if [ ! -d "$parameters_dir" ]; then
         echo "Error: Parameters directory for environment $ENVIRONMENT_NAME does not exist."
         exit 1
     fi
 
+    echo "Looking for .properties files in $parameters_dir"
+    ls "$parameters_dir"/*.properties 2>/dev/null || echo "No .properties files found in $parameters_dir"
+
     # Loop through all parameter files in the parameters directory
     for param_file in "$parameters_dir"/*.properties; do
         if [ -f "$param_file" ]; then
             # Extract stack name from the parameter file name
             stack_name=$(basename "${param_file%.properties}")
+            echo "Deploying stack: ${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name} using $param_file"
             deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name}" "$template_file" "$param_file"
-        else
-            echo "Warning: No .properties files found in $parameters_dir"
         fi
     done
 }
+
 
 # Main Logic
 case "$ACTION" in
