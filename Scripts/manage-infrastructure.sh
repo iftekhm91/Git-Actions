@@ -14,6 +14,7 @@ set -e
 
 echo "[START] Infrastructure management started at $(date +"%d-%m-%Y %H:%M")"
 
+APPLICATION_NAME=ccsa-ga-test-aws-infra
 ENVIRONMENT_NAME=
 ACTION=
 DEBUG=false
@@ -52,7 +53,6 @@ create_update_change_set () {
     local STACK_NAME=$1
     local STACK_TEMPLATE=$2
     local STACK_PARAMETERS=$3
-    local CFN_ROLE_ARN=$4
 
     aws cloudformation deploy \
         --no-execute-changeset \
@@ -67,7 +67,6 @@ deploy () {
     local STACK_NAME=$1
     local STACK_TEMPLATE=$2
     local STACK_PARAMETERS=$3
-    local CFN_ROLE_ARN=$4
 
     aws cloudformation deploy \
         --no-fail-on-empty-changeset \
@@ -78,7 +77,7 @@ deploy () {
 
 # Function to create changesets dynamically
 create_changesets() {
-    local template_dir="Infrastructure/Templates"
+    local template_file="Infrastructure/Templates/s3.yml"
     local parameters_dir="Infrastructure/Parameters/${ENVIRONMENT_NAME}"
 
     if [ ! -d "$parameters_dir" ]; then
@@ -86,36 +85,36 @@ create_changesets() {
         exit 1
     fi
 
-    for template in "$template_dir"/*; do
-        template_name=$(basename "$template")
-        param_file="${parameters_dir}/${template_name//.yml/.properties}"
-
+    # Loop through all parameter files in the parameters directory
+    for param_file in "$parameters_dir"/*.properties; do
         if [ -f "$param_file" ]; then
-            create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${template_name%.*}" "$template" "$param_file"
+            # Extract stack name from the parameter file name
+            stack_name=$(basename "${param_file%.properties}")
+            create_update_change_set "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name}" "$template_file" "$param_file"
         else
-            echo "Warning: Parameter file $param_file does not exist for template $template_name"
+            echo "Warning: No .properties files found in $parameters_dir"
         fi
     done
 }
 
 # Function to deploy resources dynamically
 deploy_resources() {
-    local template_dir="Infrastructure/Templates"
-    local parameters_dir="Infrastructure/Parameters/${ENVIRONMENT_NAME}"
+    local template_file="infrastructure/templates/s3.yml"
+    local parameters_dir="infrastructure/parameters/${ENVIRONMENT_NAME}"
 
     if [ ! -d "$parameters_dir" ]; then
         echo "Error: Parameters directory for environment $ENVIRONMENT_NAME does not exist."
         exit 1
     fi
 
-    for template in "$template_dir"/*; do
-        template_name=$(basename "$template")
-        param_file="${parameters_dir}/${template_name//.yml/.properties}"
-
+    # Loop through all parameter files in the parameters directory
+    for param_file in "$parameters_dir"/*.properties; do
         if [ -f "$param_file" ]; then
-            deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${template_name%.*}" "$template" "$param_file"
+            # Extract stack name from the parameter file name
+            stack_name=$(basename "${param_file%.properties}")
+            deploy "${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${stack_name}" "$template_file" "$param_file"
         else
-            echo "Warning: Parameter file $param_file does not exist for template $template_name"
+            echo "Warning: No .properties files found in $parameters_dir"
         fi
     done
 }
