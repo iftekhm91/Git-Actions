@@ -29,16 +29,9 @@ jobs:
           chmod +x Scripts/manage-infrastructure.sh
           echo "Creation of changeset"
           Scripts/manage-infrastructure.sh --environment-name npd-dev --action create-changeset --debug true
-
-  Manual_approval:
-    needs: Create-Changeset
-    runs-on: ubuntu-latest
-    steps:
-      - name: Awaiting Manual Review
-        run: echo "Please manually review the changeset and approve."
-
-      
+  
   Deploy-Changeset:
+    needs: Create-Changeset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
