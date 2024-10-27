@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for Sydney S3 bucket
+
+Resources:
+  SydneyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sydney-bucket-unique-id
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Environment
+          Value: Sydney
