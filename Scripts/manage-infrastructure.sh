@@ -50,42 +50,40 @@ if [ -z "$ACTION" ]; then
     exit 1
 fi
 
-# Function to create/update change set
-create_update_change_set () {
+# Function to manage resources (create/update change set or deploy)
+manage_resources () {
     local STACK_NAME=$1
     local STACK_TEMPLATE=$2
     local STACK_PARAMETERS=$3
 
-    echo "=============================="
-    echo "Creating changeset for stack: $STACK_NAME"
-    echo "=============================="
+    if [ "$ACTION" == "create-changeset" ]; then
+        echo "=============================="
+        echo "Creating changeset for stack: $STACK_NAME"
+        echo "=============================="
 
-    aws cloudformation deploy \
-        --no-execute-changeset \
-        --no-fail-on-empty-changeset \
-        --stack-name "$STACK_NAME" \
-        --template-file "$STACK_TEMPLATE" \
-        --parameter-overrides $(cat "$STACK_PARAMETERS")
+        aws cloudformation deploy \
+            --no-execute-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name "$STACK_NAME" \
+            --template-file "$STACK_TEMPLATE" \
+            --parameter-overrides $(cat "$STACK_PARAMETERS")
+    elif [ "$ACTION" == "deploy" ]; then
+        echo "=============================="
+        echo "Deploying stack: $STACK_NAME"
+        echo "=============================="
+
+        aws cloudformation deploy \
+            --no-fail-on-empty-changeset \
+            --stack-name "$STACK_NAME" \
+            --template-file "$STACK_TEMPLATE" \
+            --parameter-overrides $(cat "$STACK_PARAMETERS")
+    else
+        echo "Unsupported action: $ACTION"
+        exit 1
+    fi
 }
 
-# Function to deploy resources
-deploy () {
-    local STACK_NAME=$1
-    local STACK_TEMPLATE=$2
-    local STACK_PARAMETERS=$3
-
-    echo "=============================="
-    echo "Deploying stack: $STACK_NAME"
-    echo "=============================="
-
-    aws cloudformation deploy \
-        --no-fail-on-empty-changeset \
-        --stack-name "$STACK_NAME" \
-        --template-file "$STACK_TEMPLATE" \
-        --parameter-overrides $(cat "$STACK_PARAMETERS")
-}
-
-# Function to create and deploy changesets dynamically
+# Function to handle resources dynamically
 handle_resources() {
     local parameters_dir="Infrastructure/Parameters/${ENVIRONMENT_NAME}"
 
@@ -122,32 +120,19 @@ handle_resources() {
                 stack_name="${stack_name}-${unique_identifier}"
             fi
             
-            if [ "$ACTION" == "create-changeset" ]; then
-                echo "Creating changeset for stack: $stack_name using $param_file"
-                create_update_change_set "$stack_name" "$template_file" "$param_file"
-            elif [ "$ACTION" == "deploy" ]; then
-                echo "Deploying stack: $stack_name using $param_file"
-                deploy "$stack_name" "$template_file" "$param_file"
-            else
-                echo "Unsupported action: $ACTION"
-                exit 1
-            fi
+            echo "Processing stack: $stack_name using $param_file"
+            manage_resources "$stack_name" "$template_file" "$param_file"
         fi
     done
 }
 
-
 # Main Logic
-case "$ACTION" in
-    create-changeset)
-        handle_resources
-        echo "[END] Changesets created successfully."
-        ;;
-    deploy)
-        handle_resources
-        echo "[END] Deployment ran successfully."
-        ;;
-    *)
-        echo "Unsupported action: $ACTION"
-        exit 1 ;;
-esac
+handle_resources
+if [ "$ACTION" == "create-changeset" ]; then
+    echo "[END] Changesets created successfully."
+elif [ "$ACTION" == "deploy" ]; then
+    echo "[END] Deployment ran successfully."
+else
+    echo "Unsupported action: $ACTION"
+    exit 1
+fi
