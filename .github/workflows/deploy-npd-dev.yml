@@ -11,32 +11,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up AWS CLI for develop
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "ap-southeast-2"
-      
+
       - name: whoami
         run: aws sts get-caller-identity
-      
-      - name: Install dependencies
-        run: |
-          for package in boto3 botocore argparse; do
-            if ! python -c "import $package" &> /dev/null; then
-              echo "Installing $package..."
-              pip install $package
-            else
-              echo "$package is already installed."
-            fi
-          done
 
       - name: Create Changeset
         run: |
+          chmod +x Scripts/manage-infrastructure.sh
           echo "Creation of changeset"
-          python Scripts/manage-infrastructure.py --environment-name "npd-dev" --action "create-changeset" --debug true
+          Scripts/manage-infrastructure.sh --environment-name "npd-dev" --action "create-changeset" --debug true
   
   Deploy-Changeset:
     needs: Create-Changeset
@@ -44,29 +34,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up AWS CLI for develop
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "ap-southeast-2"
-      
+
       - name: whoami
         run: aws sts get-caller-identity
-      
-      - name: Install dependencies
-        run: |
-          for package in boto3 botocore argparse; do
-            if ! python -c "import $package" &> /dev/null; then
-              echo "Installing $package..."
-              pip install $package
-            else
-              echo "$package is already installed."
-            fi
-          done
 
       - name: Deploy Changeset
         run: |
+          chmod +x Scripts/manage-infrastructure.sh
           echo "Deploying the changeset"
-          python Scripts/manage-infrastructure.py --environment-name "npd-dev" --action "deploy" --debug true
+          Scripts/manage-infrastructure.sh --environment-name "npd-dev" --action "deploy" --debug true
