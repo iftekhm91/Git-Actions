@@ -117,8 +117,8 @@ handle_resources() {
             # Create the stack name without duplicating resource_type
             stack_name="${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${resource_type}"
             
-            # Only append unique_identifier if it's not empty
-            if [ -n "$unique_identifier" ]; then
+            # Only append unique_identifier if it's not empty and not the same as resource_type
+            if [ -n "$unique_identifier" ] && [ "$unique_identifier" != "$resource_type" ]; then
                 stack_name="${stack_name}-${unique_identifier}"
             fi
             
@@ -135,6 +135,7 @@ handle_resources() {
         fi
     done
 }
+
 
 # Main Logic
 case "$ACTION" in
