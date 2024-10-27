@@ -114,8 +114,10 @@ handle_resources() {
                 continue
             fi
 
-            # Create the stack name
+            # Create the stack name without duplicating resource_type
             stack_name="${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${resource_type}"
+            
+            # Only append unique_identifier if it's not empty
             if [ -n "$unique_identifier" ]; then
                 stack_name="${stack_name}-${unique_identifier}"
             fi
