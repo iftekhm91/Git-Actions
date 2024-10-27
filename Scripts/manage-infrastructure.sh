@@ -115,7 +115,10 @@ handle_resources() {
             fi
 
             # Create the stack name
-            stack_name="${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${resource_type}${unique_identifier:+-$unique_identifier}"
+            stack_name="${APPLICATION_NAME}-${ENVIRONMENT_NAME}-${resource_type}"
+            if [ -n "$unique_identifier" ]; then
+                stack_name="${stack_name}-${unique_identifier}"
+            fi
             
             if [ "$ACTION" == "create-changeset" ]; then
                 echo "Creating changeset for stack: $stack_name using $param_file"
