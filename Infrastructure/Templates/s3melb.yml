@@ -1,13 +1,27 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudFormation template for Melbourne S3 bucket
 
+Parameters:
+  BucketName:
+    Type: String
+    Description: The name of the S3 bucket
+  VersioningConfigurationStatus:
+    Type: String
+    AllowedValues:
+      - Enabled
+      - Suspended
+    Description: The versioning status of the S3 bucket
+  Environment:
+    Type: String
+    Description: The environment tag for the S3 bucket
+
 Resources:
   MelbourneS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: melbourne-bucket-unique-id
+      BucketName: !Ref BucketName
       VersioningConfiguration:
-        Status: Enabled
+        Status: !Ref VersioningConfigurationStatus
       Tags:
         - Key: Environment
-          Value: Melbourne
+          Value: !Ref Environment
