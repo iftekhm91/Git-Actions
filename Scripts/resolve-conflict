@@ -1,0 +1,6 @@
+git checkout nft-internal          # Switch to the nft-internal branch
+git fetch origin main              # Fetch the latest updates from the main branch
+git checkout origin/main -- create-changeset.sh deploy.sh  # Get the latest versions of the conflicting files from main
+git status                         # Verify the files are staged
+git commit -m "Resolve merge conflict by using create-changeset.sh and deploy.sh from main branch"
+git push origin nft-internal       # Push the resolved changes
