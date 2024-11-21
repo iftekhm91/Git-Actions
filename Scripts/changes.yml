@@ -1,0 +1,55 @@
+name: 'Action to assume deploy role in AWS'
+description: 'Composite action to login to AWS to assume deploy role'
+inputs:
+  workload-account-id:
+    description: 'AWS Account ID where the workload is deployed'
+    required: true
+  workload-deploy-role:
+    description: 'AWS IAM Role for deployment to assume in the workload account'
+    required: true
+  github-trust-role:
+    description: 'OIDC Trust Role to assume in the workload account'
+    required: true
+  aws-region:
+    description: 'AWS Region'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials (AssumeRoleWithWebIdentity)
+      id: assume-github-trust-role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ inputs.workload-account-id }}:role/${{ inputs.github-trust-role }}"
+        role-session-name: "GitHubActions"
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Configure AWS credentials (AssumeRole)
+      id: assume-workload-deploy-role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ inputs.workload-account-id }}:role/${{ inputs.workload-deploy-role }}"
+        role-session-name: "GitHubActions"
+        aws-region: ${{ inputs.aws-region }}
+        role-chaining: true
+
+    - name: Current deployer role
+      run: |
+        aws sts get-caller-identity
+      shell: bash
+
+
+
+- name: Assume CICD Role
+  uses: ./.github/actions/cs-aws-assume-deploy-role
+  with:
+    workload-account-id: ${{ steps.set-env.outputs.ACCOUNT_ID }}
+    workload-deploy-role: ${{ steps.set-env.outputs.DEPLOY_ROLE }}
+    github-trust-role: ${{ steps.set-env.outputs.TRUST_ROLE }}
+    aws-region: ${{ steps.set-env.outputs.REGION }}
+
+
+
+
+
