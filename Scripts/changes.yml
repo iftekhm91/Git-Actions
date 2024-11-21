@@ -50,6 +50,16 @@ runs:
     aws-region: ${{ steps.set-env.outputs.REGION }}
 
 
+Download action repository 'aws-actions/configure-aws-credentials@v4' (SHA:e3dd6a429d7300a6a4c196c26e071d42e0343502)
+Run ./.github/actions/aws-assume-deploy-role
+  with:
+Run aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: arn:aws:iam:::role/
+    role-session-name: GitHubActions
+    audience: sts.amazonaws.com
+Error: Input required and not supplied: aws-region
+
 
 
 
