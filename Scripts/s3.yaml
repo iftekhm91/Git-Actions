@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates the S3 bucket used as storage for Documentum
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Description: Storage bucket name prefix
+  KmsKeyId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: KMS customer managed key for encryption of S3
+    Default: /RRCS/resources/kms_cmk_id
+
+Resources:
+  RepositoryStorageBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub ${BucketNamePrefix}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref KmsKeyId
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: "map-migrated"
+          Value: "migTDMSTVF5I6"
