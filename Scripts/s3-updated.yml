@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates the S3 bucket used as storage for Documentum
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Description: Storage bucket name prefix
+  KmsKeyId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: KMS customer managed key for encryption of S3
+    Default: /RRCS/resources/kms_cmk_id
+  CommVaultBackupRoleArn:
+    Type: String
+    Description: ARN of the CommVault backup role
+  BucketOperationsRoleArn:
+    Type: String
+    Description: ARN of the bucket-operations role
+
+Resources:
+  RepositoryStorageBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub ${BucketNamePrefix}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref KmsKeyId
+      VersioningConfiguration:
+        Status: Suspended  # Versioning is disabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldObjects
+            Status: Enabled
+            Prefix: ""  # Apply to all objects in the bucket
+            ExpirationInDays: 7  # Delete objects older than 7 days
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7  # Optionally abort incomplete uploads after 7 days
+      Tags:
+        - Key: "map-migrated"
+          Value: "migTDMSTVF5I6"
+
+  RepositoryStorageBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref RepositoryStorageBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:ListBucket
+              - s3:DeleteObject
+            Resource:
+              - !Sub arn:aws:s3:::${BucketNamePrefix}-${AWS::AccountId}/*
+              - !Sub arn:aws:s3:::${BucketNamePrefix}-${AWS::AccountId}
+            Principal:
+              AWS:
+                - !Ref CommVaultBackupRoleArn
+                - !Ref BucketOperationsRoleArn
