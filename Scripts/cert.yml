@@ -1,0 +1,112 @@
+mohammif@mnm-GPCQMN7W93 ~ % curl -vI https://dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,local,169.254.0.0/16,cba,cbainet.com,autodiscover.cba.com.au,lync.cba.com.au,d2d92hwhi0jql3.cloudfront.net,d2974c4pbkltnj.cloudfront.net,mymac.cba.com.au'
+* Host dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba:443 was resolved.
+* IPv6: (none)
+* IPv4: 10.199.73.79, 10.199.72.44, 10.199.71.155
+*   Trying 10.199.73.79:443...
+* Connected to dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba (10.199.73.79) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; CN=dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
+*  start date: Mar  6 15:50:23 2024 GMT
+*  expire date: Mar  6 15:50:23 2025 GMT
+*  subjectAltName: host "dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba" matched cert's "dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba"
+*  issuer: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; OU=Enterprise Services; CN=CBA SHA2 Class 1 Prod - G1
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba/
+* [HTTP/2] [1] [:method: HEAD]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba]
+* [HTTP/2] [1] [:path: /]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+* [HTTP/2] [1] [accept: */*]
+> HEAD / HTTP/2
+> Host: dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/2 404 
+HTTP/2 404 
+< date: Thu, 02 Jan 2025 03:15:03 GMT
+date: Thu, 02 Jan 2025 03:15:03 GMT
+< content-type: text/html;charset=utf-8
+content-type: text/html;charset=utf-8
+< content-length: 431
+content-length: 431
+< set-cookie: route=1735787704.275.5889.802162|66c22ebfc12a4a3241af91a6d1267c96; Path=/; Secure; HttpOnly
+set-cookie: route=1735787704.275.5889.802162|66c22ebfc12a4a3241af91a6d1267c96; Path=/; Secure; HttpOnly
+< content-language: en
+content-language: en
+< strict-transport-security: max-age=15724800; includeSubDomains
+strict-transport-security: max-age=15724800; includeSubDomains
+< 
+
+* Connection #0 to host dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba left intact
+mohammif@mnm-GPCQMN7W93 ~ % curl -vI https://otds-dev.opstotds01.aws.test.au.internal.cba              
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,local,169.254.0.0/16,cba,cbainet.com,autodiscover.cba.com.au,lync.cba.com.au,d2d92hwhi0jql3.cloudfront.net,d2974c4pbkltnj.cloudfront.net,mymac.cba.com.au'
+* Host otds-dev.opstotds01.aws.test.au.internal.cba:443 was resolved.
+* IPv6: (none)
+* IPv4: 10.199.89.195, 10.199.90.169, 10.199.91.244
+*   Trying 10.199.89.195:443...
+* Connected to otds-dev.opstotds01.aws.test.au.internal.cba (10.199.89.195) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: C=AU; ST=NSW; L=Sydney; O=Commonwealth Bank of Australia; CN=otds-dev.opstotds01.aws.test.au.internal.cba
+*  start date: Jul  7 05:12:08 2024 GMT
+*  expire date: Jul  7 05:12:08 2025 GMT
+*  subjectAltName: host "otds-dev.opstotds01.aws.test.au.internal.cba" matched cert's "otds-dev.opstotds01.aws.test.au.internal.cba"
+*  issuer: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; OU=Enterprise Services; CN=CBA SHA2 Class 1 Prod - G1
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://otds-dev.opstotds01.aws.test.au.internal.cba/
+* [HTTP/2] [1] [:method: HEAD]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: otds-dev.opstotds01.aws.test.au.internal.cba]
+* [HTTP/2] [1] [:path: /]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+* [HTTP/2] [1] [accept: */*]
+> HEAD / HTTP/2
+> Host: otds-dev.opstotds01.aws.test.au.internal.cba
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/2 302 
+HTTP/2 302 
+< date: Thu, 02 Jan 2025 03:16:46 GMT
+date: Thu, 02 Jan 2025 03:16:46 GMT
+< content-type: text/html;charset=UTF-8
+content-type: text/html;charset=UTF-8
+< content-length: 0
+content-length: 0
+< location: ./otds-admin/
+location: ./otds-admin/
+< strict-transport-security: max-age=15724800; includeSubDomains
+strict-transport-security: max-age=15724800; includeSubDomains
+< 
+
+* Connection #0 to host otds-dev.opstotds01.aws.test.au.internal.cba left intact
