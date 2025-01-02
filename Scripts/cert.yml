@@ -1,112 +1,66 @@
-mohammif@mnm-GPCQMN7W93 ~ % curl -vI https://dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
-* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,local,169.254.0.0/16,cba,cbainet.com,autodiscover.cba.com.au,lync.cba.com.au,d2d92hwhi0jql3.cloudfront.net,d2974c4pbkltnj.cloudfront.net,mymac.cba.com.au'
-* Host dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba:443 was resolved.
-* IPv6: (none)
-* IPv4: 10.199.73.79, 10.199.72.44, 10.199.71.155
-*   Trying 10.199.73.79:443...
-* Connected to dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba (10.199.73.79) port 443
-* ALPN: curl offers h2,http/1.1
-* (304) (OUT), TLS handshake, Client hello (1):
-*  CAfile: /etc/ssl/cert.pem
-*  CApath: none
-* (304) (IN), TLS handshake, Server hello (2):
-* (304) (IN), TLS handshake, Unknown (8):
-* (304) (IN), TLS handshake, Certificate (11):
-* (304) (IN), TLS handshake, CERT verify (15):
-* (304) (IN), TLS handshake, Finished (20):
-* (304) (OUT), TLS handshake, Finished (20):
-* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384 / [blank] / UNDEF
-* ALPN: server accepted h2
-* Server certificate:
-*  subject: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; CN=dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
-*  start date: Mar  6 15:50:23 2024 GMT
-*  expire date: Mar  6 15:50:23 2025 GMT
-*  subjectAltName: host "dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba" matched cert's "dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba"
-*  issuer: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; OU=Enterprise Services; CN=CBA SHA2 Class 1 Prod - G1
-*  SSL certificate verify ok.
-* using HTTP/2
-* [HTTP/2] [1] OPENED stream for https://dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba/
-* [HTTP/2] [1] [:method: HEAD]
-* [HTTP/2] [1] [:scheme: https]
-* [HTTP/2] [1] [:authority: dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba]
-* [HTTP/2] [1] [:path: /]
-* [HTTP/2] [1] [user-agent: curl/8.7.1]
-* [HTTP/2] [1] [accept: */*]
-> HEAD / HTTP/2
-> Host: dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba
-> User-Agent: curl/8.7.1
-> Accept: */*
-> 
-* Request completely sent off
-< HTTP/2 404 
-HTTP/2 404 
-< date: Thu, 02 Jan 2025 03:15:03 GMT
-date: Thu, 02 Jan 2025 03:15:03 GMT
-< content-type: text/html;charset=utf-8
-content-type: text/html;charset=utf-8
-< content-length: 431
-content-length: 431
-< set-cookie: route=1735787704.275.5889.802162|66c22ebfc12a4a3241af91a6d1267c96; Path=/; Secure; HttpOnly
-set-cookie: route=1735787704.275.5889.802162|66c22ebfc12a4a3241af91a6d1267c96; Path=/; Secure; HttpOnly
-< content-language: en
-content-language: en
-< strict-transport-security: max-age=15724800; includeSubDomains
-strict-transport-security: max-age=15724800; includeSubDomains
-< 
-
-* Connection #0 to host dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba left intact
-mohammif@mnm-GPCQMN7W93 ~ % curl -vI https://otds-dev.opstotds01.aws.test.au.internal.cba              
-* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,local,169.254.0.0/16,cba,cbainet.com,autodiscover.cba.com.au,lync.cba.com.au,d2d92hwhi0jql3.cloudfront.net,d2974c4pbkltnj.cloudfront.net,mymac.cba.com.au'
-* Host otds-dev.opstotds01.aws.test.au.internal.cba:443 was resolved.
-* IPv6: (none)
-* IPv4: 10.199.89.195, 10.199.90.169, 10.199.91.244
-*   Trying 10.199.89.195:443...
-* Connected to otds-dev.opstotds01.aws.test.au.internal.cba (10.199.89.195) port 443
-* ALPN: curl offers h2,http/1.1
-* (304) (OUT), TLS handshake, Client hello (1):
-*  CAfile: /etc/ssl/cert.pem
-*  CApath: none
-* (304) (IN), TLS handshake, Server hello (2):
-* (304) (IN), TLS handshake, Unknown (8):
-* (304) (IN), TLS handshake, Certificate (11):
-* (304) (IN), TLS handshake, CERT verify (15):
-* (304) (IN), TLS handshake, Finished (20):
-* (304) (OUT), TLS handshake, Finished (20):
-* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384 / [blank] / UNDEF
-* ALPN: server accepted h2
-* Server certificate:
-*  subject: C=AU; ST=NSW; L=Sydney; O=Commonwealth Bank of Australia; CN=otds-dev.opstotds01.aws.test.au.internal.cba
-*  start date: Jul  7 05:12:08 2024 GMT
-*  expire date: Jul  7 05:12:08 2025 GMT
-*  subjectAltName: host "otds-dev.opstotds01.aws.test.au.internal.cba" matched cert's "otds-dev.opstotds01.aws.test.au.internal.cba"
-*  issuer: C=AU; ST=New South Wales; L=Sydney; O=Commonwealth Bank of Australia; OU=Enterprise Services; CN=CBA SHA2 Class 1 Prod - G1
-*  SSL certificate verify ok.
-* using HTTP/2
-* [HTTP/2] [1] OPENED stream for https://otds-dev.opstotds01.aws.test.au.internal.cba/
-* [HTTP/2] [1] [:method: HEAD]
-* [HTTP/2] [1] [:scheme: https]
-* [HTTP/2] [1] [:authority: otds-dev.opstotds01.aws.test.au.internal.cba]
-* [HTTP/2] [1] [:path: /]
-* [HTTP/2] [1] [user-agent: curl/8.7.1]
-* [HTTP/2] [1] [accept: */*]
-> HEAD / HTTP/2
-> Host: otds-dev.opstotds01.aws.test.au.internal.cba
-> User-Agent: curl/8.7.1
-> Accept: */*
-> 
-* Request completely sent off
-< HTTP/2 302 
-HTTP/2 302 
-< date: Thu, 02 Jan 2025 03:16:46 GMT
-date: Thu, 02 Jan 2025 03:16:46 GMT
-< content-type: text/html;charset=UTF-8
-content-type: text/html;charset=UTF-8
-< content-length: 0
-content-length: 0
-< location: ./otds-admin/
-location: ./otds-admin/
-< strict-transport-security: max-age=15724800; includeSubDomains
-strict-transport-security: max-age=15724800; includeSubDomains
-< 
-
-* Connection #0 to host otds-dev.opstotds01.aws.test.au.internal.cba left intact
+mohammif@mnm-GPCQMN7W93 ~ % openssl s_client -connect dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba:443 -showcerts </dev/null | openssl x509 -text -noout 
+depth=0 O = Acme Co, CN = Kubernetes Ingress Controller Fake Certificate
+verify error:num=20:unable to get local issuer certificate
+verify return:1
+depth=0 O = Acme Co, CN = Kubernetes Ingress Controller Fake Certificate
+verify error:num=21:unable to verify the first certificate
+verify return:1
+poll errorCertificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            b0:e7:fa:b9:88:6a:3c:20:8d:c2:b5:ab:b0:13:f8:cc
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O=Acme Co, CN=Kubernetes Ingress Controller Fake Certificate
+        Validity
+            Not Before: Dec  9 23:52:46 2024 GMT
+            Not After : Dec  9 23:52:46 2025 GMT
+        Subject: O=Acme Co, CN=Kubernetes Ingress Controller Fake Certificate
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:c3:07:55:d0:e4:e6:f7:8f:4a:dd:95:88:f9:25:
+                    de:6f:fa:bf:ec:73:13:7f:66:d6:a7:bc:4f:03:1c:
+                    4b:ca:3c:7c:a2:6c:2a:d9:2f:c7:1e:fc:8e:ed:60:
+                    3d:12:72:a0:fd:d1:53:c0:61:e4:c5:81:32:42:3e:
+                    9f:8f:47:7a:12:d8:cf:95:10:0c:bd:e6:14:62:3c:
+                    d5:e2:f8:91:ab:64:a1:20:2d:ea:54:ec:43:75:33:
+                    99:c4:45:32:41:2b:39:2f:df:76:c7:12:51:a4:e1:
+                    4d:1a:b6:13:95:8f:a5:ca:b7:ad:eb:95:f9:59:ec:
+                    d7:33:73:fd:2b:a8:67:16:61:cf:b3:6c:3b:40:06:
+                    12:2e:17:dd:54:0c:46:ff:84:24:ef:05:7d:27:f0:
+                    31:6e:82:be:ba:c4:b3:1f:09:0f:12:f6:cf:eb:a4:
+                    36:5d:e9:14:a4:51:d6:1d:3c:49:cd:6f:c1:4d:d8:
+                    c1:f4:36:b1:9f:8f:0d:01:a2:14:a0:ba:06:9e:b8:
+                    b0:de:10:48:ea:5e:91:24:cb:7f:70:4c:16:6a:0a:
+                    1f:9f:3a:87:1f:9e:f0:21:c2:b1:e1:1e:fd:55:b8:
+                    10:57:4d:91:83:11:99:e2:5a:b3:41:18:06:01:98:
+                    21:5d:ac:a1:48:94:45:72:3f:7c:00:cd:05:0e:b5:
+                    f0:e5
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Subject Alternative Name: 
+                DNS:ingress.local
+    Signature Algorithm: sha256WithRSAEncryption
+         1a:a3:95:30:1d:f5:f5:67:a0:a6:8c:0b:77:c5:bf:eb:cb:87:
+         b9:41:b6:47:56:08:de:f4:f5:3a:c1:b3:3b:b9:66:c2:b1:f7:
+         9a:69:fd:cc:99:ef:ae:a1:3a:b2:a7:9b:13:3d:40:59:46:3d:
+         6d:c8:7f:7b:44:0b:30:24:36:90:e3:6d:9e:b6:3d:bd:f7:e5:
+         2b:04:6f:b8:6c:58:09:7b:1f:ec:db:c3:09:92:4d:06:7e:fe:
+         b7:b2:43:46:e9:c7:b3:4d:a9:c3:b0:c9:2f:e5:db:56:1c:0c:
+         e7:42:e8:ef:a9:73:c7:fd:0d:ca:da:95:9a:61:f3:4b:14:22:
+         5f:32:2c:9c:b2:2c:1f:d1:e3:f6:00:d2:e8:36:d8:62:6f:e4:
+         01:4d:5a:79:7c:4a:04:2c:b4:43:e9:50:9c:40:7b:96:28:4e:
+         74:c7:b4:1c:6b:b8:2b:c1:3f:88:b0:72:af:4c:01:2d:b1:e0:
+         9b:22:b4:6d:d9:1a:57:c2:52:bd:7e:4c:85:9e:79:74:33:c8:
+         79:f1:dd:27:1e:0d:6a:88:05:c1:b6:c9:fe:a0:05:28:4e:b5:
+         6d:7b:8d:2f:13:4b:3a:3b:37:44:b6:8c:88:93:9b:3f:f1:77:
+         6b:cf:e8:6d:99:93:22:77:9b:fe:68:92:aa:6a:46:94:18:09:
+         b5:2d:6a:48
