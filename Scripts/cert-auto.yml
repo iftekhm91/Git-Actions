@@ -1,0 +1,203 @@
+name: Certs Creation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Environment to deploy to'
+      aws_account_id:
+        required: true
+        type: string
+        description: 'AWS Account ID'
+      aws_deploy_role:
+        required: true
+        type: string
+        description: 'AWS IAM Role for deployment to assume in the workload account'
+      aws_trust_role:
+        required: true
+        type: string
+        description: 'AWS Trust Role to assume in the workload account'
+      aws_region:
+        required: true
+        type: string
+        description: 'AWS Region'
+      aws_resource_tags:
+        description: 'Tags to attach to the secret. Space-delimited key-value pairs separated by commas. Example: "Key=keyString1,Value=valueString1 Key=keyString2,Value=valueString2"'
+        required: true
+        type: string    
+      group_idp_client_id:
+        required: true
+        type: string
+        description: 'Client ID for Cert Management API' 
+      group_idp_private_key_arn:
+        required: true
+        type: string
+        description: 'Secrets Manager ARN for Group IDP Private Key'
+      cert_password_arn:
+        required: true
+        type: string
+        description: 'Secrets Manager ARN for Certificate Password'         
+      cert_name:
+        required: true
+        type: string
+        description: 'Certificate Name'
+      cert_action:
+        required: true
+        type: string
+        description: 'Action to perform on certificate, possible actions: retrieve, issue, renew'  
+      key_secret_name:
+        required: true
+        type: string
+        description: 'Ingress secret name to store the cert key'  
+      body_secret_name:
+        required: true
+        type: string
+        description: 'Ingress secret name to store the cert body'  
+      key_secret_description:
+        required: true
+        type: string
+        description: 'Ingress cert key description'
+        default: 'ingress-cert-key-plaintext'
+      body_secret_description:
+        required: true
+        type: string
+        description: 'Ingress cert Secret body description'
+        default: 'ingress-cert-body-plaintext'
+      job_runner:
+        required: true
+        type: string
+        description: 'Ingress cert Secret body description'
+      cert_manager_environment:
+        required: true
+        type: string
+        default: 'staging'
+        description: 'cert manager environment possible value: staging, prod'
+        
+jobs:
+  cert-mgmt-job:
+    runs-on: ${{ inputs.job_runner }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Assume CICD Role
+        uses: CBA-General/rrcs-common-actions/cs-aws-assume-deploy-role@main
+        with:
+          workload-account-id: ${{ inputs.aws_account_id }}
+          workload-deploy-role: ${{ inputs.aws_deploy_role }}
+          github-trust-role: ${{ inputs.aws_trust_role }}
+          aws-region: ${{ inputs.aws_region }}       
+
+      - name: Get cert access key and password from Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@v1
+        with:
+          secret-ids: |
+            GROUP_IDP_PRIVATE_KEY, ${{ inputs.group_idp_private_key_arn }}
+            CERT_PASSWORD, ${{ inputs.cert_password_arn }}
+
+      # this would make sure its boolean instead of a string
+      - name: Set up cert manager environment
+        id: setup-cert-mgmt-env
+        run: |
+          if [[ "${{ inputs.cert_manager_environment }}" = "prod" || "${{ inputs.cert_manager_environment }}" = "prd" ]]; then
+            echo "isProd=true" >> $GITHUB_ENV
+          else
+            echo "isProd=false" >> $GITHUB_ENV
+          fi
+
+      - name: ${{ inputs.cert_action }} cert ${{ inputs.cert_name }} using Cert Management API
+        uses: CBA-General/cert-mgmt-api-gh-action@v3.2.0
+        id: managecert
+        with:
+          clientid: ${{ inputs.group_idp_client_id }}
+          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY  }}
+          command: ${{ inputs.cert_action }} 
+          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "password":"${{ env.CERT_PASSWORD }}"}'
+          download: true
+          encode: false
+          prod: ${{ env.isProd }} 
+
+      - name: Generate Custom certs and Push values into AWS Secrets Manager
+        # Github Actions executes bash scripts in fail-fast mode (bash --noprofile --norc -e -o pipefail {0}) by default. `bash {0}` is used to execute the script in non-fail-fast mode.
+        shell: bash {0}
+        run: |
+          dir=$(pwd)
+          ls -la
+          decrypt_key_path=${dir}/decryptkey.pem
+          cert_pem_path=${dir}/${{ inputs.cert_name }}-chain.pem
+          cert_crt_path=${dir}/${{ inputs.cert_name }}.crt
+          key_path=${dir}/${{ inputs.cert_name }}.key
+          
+          # Generate the key plain text and store in secret manager
+          # Command to decrypt the key and passin password for prompt
+          openssl rsa -in $key_path -out $decrypt_key_path -passin pass:"${{ env.CERT_PASSWORD }}"
+          
+          # Read the key file content
+          key_file_content=$(cat ${decrypt_key_path})
+          
+          # For the key secret
+          
+          # Check if the secret exists
+          aws secretsmanager describe-secret --secret-id "${{ inputs.key_secret_name }}" --region "${{ inputs.AWS_REGION }}"  > /dev/null 2>&1
+          # If the secret exists
+          
+          if [ $? -eq 0 ]; then
+              echo "######################################### Secret Exists #########################################"
+              # Update the secret
+              aws secretsmanager put-secret-value --secret-id "${{ inputs.key_secret_name }}" --secret-string "$key_file_content" --region "${{ inputs.aws_region }}"
+          else
+              echo "######################################### Secret Does not Exists #########################################"
+              # Create the secret
+              aws secretsmanager create-secret --name "${{ inputs.key_secret_name }}" --description "${{ inputs.key_secret_description }}" --secret-string "$key_file_content" --region "${{ inputs.aws_region }}" --tags ${{ inputs.aws_resource_tags }} 
+          fi
+          
+          # Unset key_file_content
+          unset key_file_content          
+          
+          # Generate the body plain text store in secret manager
+          # Read the body file content
+          body_file_content=$(cat $cert_crt_path $cert_pem_path)
+          
+          # For the body secret
+          # Check if the secret exists
+          aws secretsmanager describe-secret --secret-id "${{ inputs.body_secret_name }}" --region "${{ inputs.aws_region }}" > /dev/null 2>&1
+          
+          # If the secret exists
+          if [ $? -eq 0 ]; then
+              echo "######################################### Secret Exists #########################################"
+              # Update the secret
+              aws secretsmanager put-secret-value --secret-id "${{ inputs.body_secret_name }}" --secret-string "$body_file_content" --region "${{ inputs.aws_region }}"
+          else
+              echo "######################################### Secret Does not Exists #########################################"
+              # Create the secret
+              aws secretsmanager create-secret --name "${{ inputs.body_secret_name }}" --description "${{ inputs.body_secret_description }}" --secret-string "$body_file_content" --region "${{ inputs.aws_region }}" --tags ${{ inputs.aws_resource_tags }} 
+          fi
+          # Unset body_file_content
+          unset body_file_content
+          
+      - name: Clean Retrieved and Generated Certificates
+        run: |
+          # Set the directory
+          dir=$(pwd)
+          
+          # Set variables for paths
+          decrypt_key_path="${dir}/decryptkey.pem"
+          cert_pem_path="${dir}/${{ inputs.cert_name }}-chain.pem"
+          cert_crt_path="${dir}/${{ inputs.cert_name }}.crt"
+          key_path="${dir}/${{ inputs.cert_name }}.key"
+          
+          # Array of file paths
+          file_paths=("$decrypt_key_path" "$cert_pem_path" "$cert_crt_path" "$key_path")
+          
+          # Iterate over the file_paths and delete files if they exist
+          for file_path in "${file_paths[@]}"; do
+              if [ -f "$file_path" ]; then
+                  shred -u "$file_path"
+                  echo "#######################"" ${file_path##*/} file deleted #######################"
+              else
+                  echo "####################### ${file_path##*/} file does not exist #######################"
+              fi
+          done
