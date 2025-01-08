@@ -1,0 +1,37 @@
+
+total 12
+drwxr-xr-x. 13 runner runner  219 Jan  8 00:12 .
+drwxr-xr-x.  3 runner runner   29 Jan  8 00:12 ..
+drwxr-xr-x.  8 runner runner  200 Jan  8 00:12 .git
+drwxr-xr-x.  3 runner runner   70 Jan  8 00:12 .github
+-rw-r--r--.  1 runner runner  613 Jan  8 00:12 .gitignore
+-rw-r--r--.  1 runner runner 3850 Jan  8 00:12 README.md
+drwxr-xr-x.  2 runner runner   66 Jan  8 00:12 budgets
+drwxr-xr-x.  2 runner runner  224 Jan  8 00:12 efs-backups
+drwxr-xr-x.  4 runner runner   41 Jan  8 00:12 infrastructure
+drwxr-xr-x.  3 runner runner   24 Jan  8 00:12 observability
+drwxr-xr-x.  2 runner runner   44 Jan  8 00:12 prerequisites
+drwxr-xr-x.  2 runner runner   67 Jan  8 00:12 scripts
+drwxr-xr-x.  2 runner runner 4096 Jan  8 00:12 secrets
+drwxr-xr-x.  2 runner runner  116 Jan  8 00:12 sns
+drwxr-xr-x.  2 runner runner   27 Jan  8 00:12 snyk
+Could not open file or uri for loading private key from /home/runner/_work/rrcs-dctm-infra/rrcs-dctm-infra/test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba.key
+80BB96CE317F0000:error:16000069:STORE routines:ossl_store_get0_loader_int:unregistered scheme:../crypto/store/store_register.c:237:scheme=file
+80BB96CE317F0000:error:80000002:system library:file_open:No such file or directory:../providers/implementations/storemgmt/file_store.c:267:calling stat(/home/runner/_work/rrcs-dctm-infra/rrcs-dctm-infra/test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba.key)
+cat: /home/runner/_work/rrcs-dctm-infra/rrcs-dctm-infra/decryptkey.pem: No such file or directory
+######################################### Secret Does not Exists #########################################
+
+Parameter validation failed:
+Invalid length for parameter SecretString, value: 0, valid min length: 1
+cat: /home/runner/_work/rrcs-dctm-infra/rrcs-dctm-infra/test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba.crt: No such file or directory
+cat: /home/runner/_work/rrcs-dctm-infra/rrcs-dctm-infra/test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba-chain.pem: No such file or directory
+######################################### Secret Does not Exists #########################################
+
+Parameter validation failed:
+Invalid length for parameter SecretString, value: 0, valid min length: 1
+0s
+Run # Set the directory
+####################### decryptkey.pem file does not exist #######################
+####################### test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba-chain.pem file does not exist #######################
+####################### test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba.crt file does not exist #######################
+####################### test-sha-2-dctm-internal-dev.opstcontstore01.aws.test.au.internal.cba.key file does not exist #######################
