@@ -1,4 +1,25 @@
+curl -i -X POST \
+  https://prod01.certmgmt.prod.aws.groupapi.cba/cert/v1/issue \
+  -H 'Authorization: Bearer <YOUR_TOKEN_HERE>' \
+  -H 'Content-Type: application/json' \
+  -H 'x-request-id: string' \
+  -d '{
+    "subject": "string",
+    "tsosn": 0,
+    "cadn": "sha2",
+    "csr": "",
+    "format": "Base64",
+    "includeprivatekey": false,
+    "password": "",
+    "includechain": "True",
+    "san": [],
+    "keystorepassword": "",
+    "friendlyname": "",
+    "organizationalunit": "",
+    "expiresin": 60
+  }'
 
+  
 total 12
 drwxr-xr-x. 13 runner runner  219 Jan  8 00:12 .
 drwxr-xr-x.  3 runner runner   29 Jan  8 00:12 ..
