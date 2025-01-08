@@ -19,6 +19,13 @@ curl -i -X POST \
     "expiresin": 60
   }'
 
+san
+Array of San (objects) or San (null)
+(San)
+The Subject Alternative Name (SAN) is an extension to the X.509 specification that allows users to specify additional host names for a single SSL certificate. The default value is an empty list. If you want to add SANs to the certificate, you can add them in the following format: [{"TypeName":"2","Name":"example.com"}]. Type or TypeName: A number that represents the kind of SAN: 0: OtherName. Specify a Uniform Resource Name (URN) or username. 1: Email 2: DNS 6: URI 7: IPAddress
+
+Default
+[]
   
 total 12
 drwxr-xr-x. 13 runner runner  219 Jan  8 00:12 .
