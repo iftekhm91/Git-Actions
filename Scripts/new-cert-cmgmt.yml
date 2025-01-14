@@ -1,0 +1,55 @@
+name: Cert Management
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Environment to deploy to'
+      cert_action:
+        required: true
+        type: string
+        description: 'Action to perform on certificate'
+      cert_name:
+        required: true
+        type: string
+        description: 'Certificate Name'
+      san_list:
+        required: false
+        type: string
+        description: 'Comma-separated list of SANs (DNS names) to be included in the certificate'
+
+jobs:
+  set-env-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      SAN_LIST: ${{ steps.set-sans.outputs.SAN_LIST }}
+    steps:
+      - name: Set Environment Variables
+        id: set-sans
+        run: |
+          # Set SAN_LIST as an environment variable if provided
+          if [[ -n "${{ inputs.san_list }}" ]]; then
+            echo "SAN_LIST=${{ inputs.san_list }}" >> $GITHUB_ENV
+          else
+            echo "SAN_LIST=" >> $GITHUB_ENV
+          fi
+
+  cert-creation:
+    needs: set-env-vars
+    runs-on: ubuntu-latest
+    environment: ${{ needs.set-env-vars.outputs.environment }}
+    steps:
+      - name: Use SAN environment variable
+        run: |
+          echo "SAN List: ${{ env.SAN_LIST }}"
+          
+      - name: Call Cert Creation Workflow
+        uses: ./.github/workflows/cert-creation.yml
+        with:
+          environment: ${{ needs.set-env-vars.outputs.environment }}
+          cert_action: ${{ inputs.cert_action }}
+          cert_name: ${{ inputs.cert_name }}
+          san_list: ${{ env.SAN_LIST }}  # Passing SAN_LIST as an input to cert-creation.yml
+          # Other necessary inputs
