@@ -102,7 +102,7 @@ jobs:
             GROUP_IDP_PRIVATE_KEY, ${{ inputs.group_idp_private_key_arn }}
             CERT_PASSWORD, ${{ inputs.cert_password_arn }}
 
-      # Set up cert manager environment
+      # this would make sure its boolean instead of a string
       - name: Set up cert manager environment
         id: setup-cert-mgmt-env
         run: |
@@ -112,7 +112,7 @@ jobs:
             echo "isProd=false" >> $GITHUB_ENV
           fi
 
-      # Format san_list as JSON if provided
+       # Format san_list as JSON if provided
       - name: Format SAN_LIST into JSON (if SAN_LIST is provided)
         id: format-san-list
         run: |
@@ -132,19 +132,40 @@ jobs:
             # Save the SAN_JSON to a temporary file for later use
             echo "$san_json" > ./san_json.json
             echo "Formatted SAN JSON: ${san_json}"
+            ls
+            cat ./san_json.json
           else
             echo "SAN_LIST is not provided, skipping SAN formatting."
             echo "SAN_JSON=null" > ./san_json.json
           fi
+
+      # Read the SAN_JSON from the temporary file and store it in a GitHub environment variable
+      - name: Read SAN_JSON from temporary file and pass as environment variable
+        id: read-san-json
+        run: |
+          # Read the content of the SAN JSON file into an environment variable
+          SAN_JSON=$(cat ./san_json.json | jq -c .)  # Ensure JSON is compact (no extra spaces/newlines)
+    
+          # Set the SAN_JSON as a GitHub environment variable
+          echo "SAN_JSON=\"${SAN_JSON}\"" >> $GITHUB_ENV
+          echo "SAN_JSON read from file and passed as environment variable."
+
+          # Echo the SAN_JSON for debugging purposes
+          echo "DEBUG: SAN_JSON = $SAN_JSON"
+
+      - name: Debug SAN_JSON content
+        run: |
+          echo "DEBUG: The SAN_JSON is:"
+          echo "${{ env.SAN_JSON }}"
 
       - name: ${{ inputs.cert_action }} cert ${{ inputs.cert_name }} using Cert Management API
         uses: CBA-General/cert-mgmt-api-gh-action@v3.2.0
         id: managecert
         with:
           clientid: ${{ inputs.group_idp_client_id }}
-          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY }}
+          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY  }}
           command: ${{ inputs.cert_action }} 
-          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": "$(cat ./san_json.json)"}'
+          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": ${{ env.SAN_JSON }}}'
           download: true
           encode: false
           prod: ${{ env.isProd }} 
@@ -206,7 +227,7 @@ jobs:
           fi
           # Unset body_file_content
           unset body_file_content
-
+          
       - name: Clean Retrieved and Generated Certificates
         run: |
           # Set the directory
