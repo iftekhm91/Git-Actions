@@ -1,4 +1,4 @@
-data: '{"subject":"test2-sha-2.opstcontstore01.aws.test.au.internal.cba", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"***", "san": [{"TypeName":"2","Name":"san-ref-1.opstcontstore01.aws.test.au.internal.cba"}]}'
+data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": [{"TypeName":"2","Name":"san-ref-1.opstcontstore01.aws.test.au.internal.cba"}]}'
 
 
 data: '{"subject":"test2-sha-2.opstcontstore01.aws.test.au.internal.cba", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"***", "san": "[{\"TypeName\":\"2\",\"Name\":\"san-ref-1.opstcontstore01.aws.test.au.internal.cba\"}]"}'
