@@ -1,3 +1,16 @@
+ith:
+    clientid: document-services.int.stg.dctm-cert-mgmt
+    privatekey: ***
+    command: issue
+    data: {"subject":"test2-sha-2.opstcontstore01.aws.test.au.internal.cba", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"***", "san": "$(cat ./san_json.json)"}
+    download: true
+    encode: false
+    prod: false
+    version: v1
+    get: false
+  env:
+ 
+ 
  # Ensure SAN_LIST is not empty
   if [ -n "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com" ]; then
     echo "SAN_LIST is provided: san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com"
