@@ -8,3 +8,8 @@ Formatted SAN JSON: [
 ]
 Error: Unable to process file command 'env' successfully.
 Error: Invalid format '  {'
+
+
+---
+
+data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": [{"TypeName":"2","Name":"example.com"}]}'
