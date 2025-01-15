@@ -1,3 +1,7 @@
+Run # Ensure SAN_LIST is not empty
+/home/runner/_work/_temp/ae1486ff-0ec3-4de5-8194-61b9a880cb92.sh: line 3: SAN_LIST is provided: ${inputs.san_list}: bad substitution
+Error: Process completed with exit code 1.
+
 jobs:
   cert-mgmt-job:
     runs-on: ${{ inputs.job_runner }}
