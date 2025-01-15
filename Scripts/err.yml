@@ -24,6 +24,32 @@ snyk
   }
 ]
 
+README.md
+budgets
+efs-backups
+infrastructure
+observability
+prerequisites
+san_json.json
+scripts
+secrets
+sns
+snyk
+[
+  {
+    "TypeName": "2",
+    "Name": "san-ref-1.opstcontstore01.aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "opst-san-ref-2-aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "san-ref-3.example.com"
+  }
+]
+
 data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": [{"TypeName":"2","Name":"san-ref-1.opstcontstore01.aws.test.au.internal.cba"}]}'
 
 
