@@ -9,6 +9,8 @@
     echo "SAN_JSON=${SAN_JSON}" >> $GITHUB_ENV
     echo "SAN_JSON read from file and passed as environment variable."
 
+    # Echo the SAN_JSON for debugging purposes
+    echo "DEBUG: SAN_JSON = $SAN_JSON"
 
 Run # Read the content of the SAN JSON file into an environment variable
   # Read the content of the SAN JSON file into an environment variable
