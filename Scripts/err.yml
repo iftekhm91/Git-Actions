@@ -1,3 +1,23 @@
+Run if [ -n "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com" ]; then
+Formatted SAN JSON: [
+  {
+    "TypeName": "2",
+    "Name": "san-ref-1.opstcontstore01.aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "opst-san-ref-2-aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "san-ref-3.example.com"
+  }
+]
+Error: Unable to process file command 'env' successfully.
+Error: Invalid format '  {'
+
+
+
 curl -i -X POST \
   https://prod01.certmgmt.prod.aws.groupapi.cba/cert/v1/issue \
   -H 'Authorization: Bearer <YOUR_TOKEN_HERE>' \
