@@ -1,3 +1,6 @@
+san_json=$(echo $san_json | jq --arg san "$san" '. += [{"TypeName": "2", "Name": $san}]')
+
+
 # Ensure SAN_LIST is not empty
   if [ -n "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com" ]; then
     echo "SAN_LIST is provided: $({ inputs.san_list }}"
