@@ -1,3 +1,53 @@
+ # Ensure SAN_LIST is not empty
+  if [ -n "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com" ]; then
+    echo "SAN_LIST is provided: san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com"
+    
+    # Clean and format the SAN_LIST into a JSON array
+    san_json="[]"
+    IFS=',' read -r -a san_array <<< "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com"
+  
+    # Loop through the SAN list and format them as API-compatible JSON objects
+    for san in "${san_array[@]}"; do
+      san_json=$(echo $san_json | jq --arg san "$san" '. += [{"TypeName": "2", "Name": $san}]')
+    done
+  
+    # Set the SAN_JSON as an environment variable for later use
+    echo "SAN_JSON=${san_json}" >> $GITHUB_ENV
+    echo "Formatted SAN JSON: ${san_json}"
+  else
+    echo "SAN_LIST is not provided, skipping SAN formatting."
+    echo "SAN_JSON=null" >> $GITHUB_ENV
+  fi
+  shell: /usr/bin/bash -e {0}
+  env:
+    AWS_DEFAULT_REGION: ap-southeast-2
+    AWS_REGION: ap-southeast-2
+    AWS_ACCESS_KEY_ID: ***
+    AWS_SECRET_ACCESS_KEY: ***
+    AWS_SESSION_TOKEN: ***
+    GROUP_IDP_PRIVATE_KEY: ***
+    CERT_PASSWORD: ***
+    SECRETS_LIST_CLEAN_UP: ["GROUP_IDP_PRIVATE_KEY","CERT_PASSWORD"]
+    isProd: false
+SAN_LIST is provided: san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com
+Formatted SAN JSON: [
+  {
+    "TypeName": "2",
+    "Name": "san-ref-1.opstcontstore01.aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "opst-san-ref-2-aws.test.au.internal.cba"
+  },
+  {
+    "TypeName": "2",
+    "Name": "san-ref-3.example.com"
+  }
+]
+Error: Unable to process file command 'env' successfully.
+Error: Invalid format '  {'
+
+
 san_json=$(echo $san_json | jq --arg san "$san" '. += [{"TypeName": "2", "Name": $san}]')
 
 
