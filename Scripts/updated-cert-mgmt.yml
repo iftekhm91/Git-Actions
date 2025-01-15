@@ -1,0 +1,74 @@
+name: Certificate Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Environment to run the DCTM certificate management workflow'
+        required: true  
+        
+      cert_action:
+        type: choice
+        description: 'Action to perform on certificate, possible actions: retrieve, issue, renew'
+        required: true
+        options:
+          - retrieve
+          - issue
+          - renew
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  set-env-vars:
+    runs-on: default
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Set runner and environment variables
+        id: set-env-vars
+        run: |
+          echo "setting environments variables and runner for the environment"
+          if [[ "${{ github.event.inputs.environment }}" ==  "Prod-internal" || "${{ github.event.inputs.environment }}" == "Prod-customer" ]]; then
+            echo "runner-type=default" >> $GITHUB_OUTPUT
+          else
+            echo "runner-type=default-nonprod" >> $GITHUB_OUTPUT
+          fi     
+    outputs:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      GROUP_IDP_PRIVATE_KEY_ARN: ${{ vars.GROUP_IDP_PRIVATE_KEY_ARN }}
+      CERT_PASSWORD_ARN: ${{ vars.CERT_PASSWORD_ARN }}
+      GROUP_IDP_CLIENT_ID: ${{ vars.GROUP_IDP_CLIENT_ID }}
+      CERT_NAME: ${{ vars.CERT_NAME }}
+      CLUSTER: ${{ vars.CLUSTER }}
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
+      TARGET_ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT }}
+      CERT_ACTION: ${{ github.event.inputs.cert_action }}
+      JOB_RUNNER: ${{ steps.set-env-vars.outputs.runner-type }}
+      APPLICATION_NAME: ${{ vars.APPLICATION_NAME }}
+      SAN_LIST: ${{ vars.SAN_LIST }}  # San list environment variable (this is just passed as is)
+
+  manage-certs:
+    needs: set-env-vars
+    name: "Manage certs"
+    uses: CBA-General/rrcs-common-workflows/.github/workflows/certs-creation.yml@sha-2-test
+    with:
+      environment: ${{ needs.set-env-vars.outputs.ENVIRONMENT }}
+      aws_account_id: ${{ needs.set-env-vars.outputs.AWS_ACCOUNT_ID }}
+      aws_deploy_role: "GithubCICDRole"
+      aws_trust_role: "GithubOIDCRole"
+      aws_region: "ap-southeast-2"
+      group_idp_private_key_arn: ${{ needs.set-env-vars.outputs.GROUP_IDP_PRIVATE_KEY_ARN }}
+      cert_password_arn: ${{ needs.set-env-vars.outputs.CERT_PASSWORD_ARN }}
+      group_idp_client_id: ${{ needs.set-env-vars.outputs.GROUP_IDP_CLIENT_ID }}
+      cert_name: ${{ needs.set-env-vars.outputs.CERT_NAME }}
+      cert_action: ${{ needs.set-env-vars.outputs.CERT_ACTION }}
+      key_secret_name: "/${{ needs.set-env-vars.outputs.CLUSTER }}/${{ needs.set-env-vars.outputs.APPLICATION_NAME }}/${{ needs.set-env-vars.outputs.TARGET_ENVIRONMENT_NAME }}/ingress-cert-key-sha-2-mig"
+      body_secret_name: "/${{ needs.set-env-vars.outputs.CLUSTER }}/${{ needs.set-env-vars.outputs.APPLICATION_NAME }}/${{ needs.set-env-vars.outputs.TARGET_ENVIRONMENT_NAME }}/ingress-cert-body-sha-2-mig"
+      key_secret_description: "Ingress certificate key in plain text format"
+      body_secret_description: "Ingress certificate body in plain text format"
+      aws_resource_tags: "Key=map-migrated,Value=migTDMSTVF5I6"
+      job_runner: ${{ needs.set-env-vars.outputs.JOB_RUNNER }}
+      cert_manager_environment: ${{ needs.set-env-vars.outputs.TARGET_ENVIRONMENT_NAME }}
+      san_list: ${{ needs.set-env-vars.outputs.SAN_LIST }}  # Pass the SAN_LIST as it is to cert-creation.yml (no formatting here)
