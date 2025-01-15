@@ -102,7 +102,7 @@ jobs:
             GROUP_IDP_PRIVATE_KEY, ${{ inputs.group_idp_private_key_arn }}
             CERT_PASSWORD, ${{ inputs.cert_password_arn }}
 
-      # this would make sure its boolean instead of a string
+      # Set up cert manager environment
       - name: Set up cert manager environment
         id: setup-cert-mgmt-env
         run: |
@@ -112,14 +112,14 @@ jobs:
             echo "isProd=false" >> $GITHUB_ENV
           fi
 
-       # Format san_list as JSON if provided
+      # Format san_list as JSON if provided
       - name: Format SAN_LIST into JSON (if SAN_LIST is provided)
         id: format-san-list
         run: |
           # Ensure SAN_LIST is not empty
           if [ -n "${{ inputs.san_list }}" ]; then
             echo "SAN_LIST is provided: ${{ inputs.san_list }}"
-            
+
             # Clean and format the SAN_LIST into a JSON array
             san_json="[]"
             IFS=',' read -r -a san_array <<< "${{ inputs.san_list }}"
@@ -129,12 +129,12 @@ jobs:
               san_json=$(echo $san_json | jq --arg san "$san" '. += [{"TypeName": "2", "Name": $san}]')
             done
 
-            # Set the SAN_JSON as an environment variable for later use
-            echo "SAN_JSON=${san_json}" >> $GITHUB_ENV
+            # Save the SAN_JSON to a temporary file for later use
+            echo "$san_json" > ./san_json.json
             echo "Formatted SAN JSON: ${san_json}"
           else
             echo "SAN_LIST is not provided, skipping SAN formatting."
-            echo "SAN_JSON=null" >> $GITHUB_ENV
+            echo "SAN_JSON=null" > ./san_json.json
           fi
 
       - name: ${{ inputs.cert_action }} cert ${{ inputs.cert_name }} using Cert Management API
@@ -142,9 +142,9 @@ jobs:
         id: managecert
         with:
           clientid: ${{ inputs.group_idp_client_id }}
-          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY  }}
+          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY }}
           command: ${{ inputs.cert_action }} 
-          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": "${{ env.SAN_JSON }}"}'
+          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"${{ env.CERT_PASSWORD }}", "san": "$(cat ./san_json.json)"}'
           download: true
           encode: false
           prod: ${{ env.isProd }} 
@@ -206,7 +206,7 @@ jobs:
           fi
           # Unset body_file_content
           unset body_file_content
-          
+
       - name: Clean Retrieved and Generated Certificates
         run: |
           # Set the directory
@@ -217,9 +217,10 @@ jobs:
           cert_pem_path="${dir}/${{ inputs.cert_name }}-chain.pem"
           cert_crt_path="${dir}/${{ inputs.cert_name }}.crt"
           key_path="${dir}/${{ inputs.cert_name }}.key"
+          san_json_path="${dir}/san_json.json"
           
           # Array of file paths
-          file_paths=("$decrypt_key_path" "$cert_pem_path" "$cert_crt_path" "$key_path")
+          file_paths=("$decrypt_key_path" "$cert_pem_path" "$cert_crt_path" "$key_path" "$san_json_path")
           
           # Iterate over the file_paths and delete files if they exist
           for file_path in "${file_paths[@]}"; do
