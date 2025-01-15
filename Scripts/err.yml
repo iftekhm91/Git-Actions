@@ -1,3 +1,50 @@
+jobs:
+  cert-mgmt-job:
+    runs-on: ${{ inputs.job_runner }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Format SAN_LIST into JSON (if SAN_LIST is provided)
+        id: format-san-list
+        run: |
+          # Ensure SAN_LIST is not empty
+          if [ -n "${{ inputs.san_list }}" ]; then
+            echo "SAN_LIST is provided: ${inputs.san_list}"
+            
+            # Clean and format the SAN_LIST into a JSON array
+            san_json="[]"
+            IFS=',' read -r -a san_array <<< "${{ inputs.san_list }}"
+
+            # Loop through the SAN list and format them as API-compatible JSON objects
+            for san in "${san_array[@]}"; do
+              san_json=$(echo $san_json | jq '. += [{"TypeName": "2", "Name": "'"$san"'"}]')
+            done
+
+            # Set the SAN_JSON as an environment variable for later use
+            echo "SAN_JSON=${san_json}" >> $GITHUB_ENV
+            echo "Formatted SAN JSON: ${san_json}"
+          else
+            echo "SAN_LIST is not provided, skipping SAN formatting."
+            echo "SAN_JSON=null" >> $GITHUB_ENV
+          fi
+
+      - name: Issue/Manage cert ${{ inputs.cert_name }} using Cert Management API
+        uses: CBA-General/cert-mgmt-api-gh-action@v3.2.0
+        id: managecert
+        with:
+          clientid: ${{ inputs.group_idp_client_id }}
+          privatekey: ${{ env.GROUP_IDP_PRIVATE_KEY }}
+          command: ${{ inputs.cert_action }} 
+          data: '{"subject":"${{ inputs.cert_name }}", "includechain":"true", "cadn": "sha2-g3", "includeprivatekey": "true", "password":"${{ env.CERT_PASSWORD }}", "SAN": '${{ env.SAN_JSON }}'}'
+          download: true
+          encode: false
+          prod: ${{ env.isProd }}
+
+
+
+
 Run if [ -n "san-ref-1.opstcontstore01.aws.test.au.internal.cba,opst-san-ref-2-aws.test.au.internal.cba,san-ref-3.example.com" ]; then
 Formatted SAN JSON: [
   {
