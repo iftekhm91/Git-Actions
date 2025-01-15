@@ -1,3 +1,6 @@
+data: '{"subject":"test2-sha-2.opstcontstore01.aws.test.au.internal.cba", "includechain":"true", "includeprivatekey": "true", "cadn": "sha2-g3", "password":"***", "san": "[{\"TypeName\":\"2\",\"Name\":\"san-ref-1.opstcontstore01.aws.test.au.internal.cba\"}]"}'
+
+
 ith:
     clientid: document-services.int.stg.dctm-cert-mgmt
     privatekey: ***
