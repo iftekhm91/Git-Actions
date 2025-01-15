@@ -1,3 +1,15 @@
+# Read the SAN_JSON from the temporary file and pass as environment variable
+- name: Read SAN_JSON from temporary file and pass as environment variable
+  id: read-san-json
+  run: |
+    # Read the content of the SAN JSON file into an environment variable
+    SAN_JSON=$(cat ./san_json.json | jq -c .)  # Ensure JSON is compact (no extra spaces/newlines)
+    
+    # Set the SAN_JSON as a GitHub environment variable
+    echo "SAN_JSON=${SAN_JSON}" >> $GITHUB_ENV
+    echo "SAN_JSON read from file and passed as environment variable."
+
+
 Run # Read the content of the SAN JSON file into an environment variable
   # Read the content of the SAN JSON file into an environment variable
   SAN_JSON=$(cat ./san_json.json)
